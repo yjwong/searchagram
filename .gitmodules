@@ -1,0 +1,18 @@
+[submodule "3rdparty/jsoncpp"]
+	path = 3rdparty/jsoncpp
+	url = https://github.com/yjwong/jsoncpp.git
+[submodule "3rdparty/cpp-netlib"]
+	path = 3rdparty/cpp-netlib
+	url = https://github.com/cpp-netlib/cpp-netlib.git
+[submodule "3rdparty/uri"]
+	path = 3rdparty/uri
+	url = https://github.com/cpp-netlib/uri.git
+[submodule "3rdparty/soci"]
+	path = 3rdparty/soci
+	url = https://github.com/SOCI/soci.git
+[submodule "3rdparty/sqlite"]
+	path = 3rdparty/sqlite
+	url = git://repo.or.cz/sqlite.git
+[submodule "3rdparty/libb64"]
+	path = 3rdparty/libb64
+	url = git://git.code.sf.net/p/libb64/git
