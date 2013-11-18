@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Search-a-gram</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="css/searchagram.css" rel="stylesheet">
+    
+    <link href='http://fonts.googleapis.com/css?family=Roboto:300' rel='stylesheet' type='text/css'>
+    
+    <script src="js/jquery-1.10.2.min.js"></script>
+    <script src="js/adjust-height.js"></script>
+    <script src="js/advanced-search.js"></script>
+    <script src="js/holder.js"></script>
+
+  </head>
+
+  <body style="padding-top: 50px;">
+    
+    <!-- Top fixed navbar -->
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <!-- The hamburger button for the collapsed nav -->
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <!-- TODO: Replace this with the logo -->
+          <a class="navbar-brand" href="index.html">Search-a-gram</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="#">Search</a></li>
+            <li><a href="#">About</a></li>
+            <li><a href="#">Vote</a></li>
+          </ul>
+        </div><!--/.navbar-collapse -->
+      </div><!-- /container -->
+    </div>
+
+    <!-- Search -->
+    <div id="search" class="jumbotron" style="background-image: url('assets/wood-edited.jpg');">
+      <div class="container" style="display: table-cell; vertical-align: middle; padding-left: 60px; padding-right: 60px;">
+        <h1 style="text-align: center; margin-bottom: 50px;">I want to...</h1>
+        
+        <!-- Text based search -->
+        <form class="form-horizontal col-sm-6" role="form">
+          
+          <!-- Find images/videos -->
+          <div class="form-group">
+            <label for="find" class="col-sm-4 control-label" style="text-align: left;">Find</label>
+            <div class="col-sm-8">
+              <select class="form-control" id="find">
+                <option>images and videos</option>
+                <option>only images</option>
+                <option>only videos</option>
+              </select>
+            </div>
+          </div>
+          
+          <!-- By username -->
+          <div class="form-group">
+            <label for="user" class="col-sm-4 control-label" style="text-align: left;">uploaded by</label>
+            <div class="col-sm-8">
+              <input type="text" class="form-control" id="user" placeholder="username">
+            </div>
+          </div>
+          
+          <!-- With the tags -->
+          <div class="form-group">
+            <label for="hashtag" class="col-sm-4 control-label" style="text-align: left;">with hashtags</label>
+            <div class="col-sm-8">
+              <input type="text" class="form-control" id="hashtag" placeholder="hashtag1, hashtag2, hashtag3, etc.">
+            </div>
+          </div>
+
+          <!-- Advanced search stuff -->
+          <div id="advanced-search" class="advanced-search" style="display: none;">
+            <!-- With the filter -->
+            <div class="form-group">
+              <label for="filter" class="col-sm-4 control-label" style="text-align: left;">with the filter</label>
+              <div class="col-sm-8">
+                <select class="form-control" id="filter">
+                  <option>FOR YJWONG TO FILL</option>         
+                </select>
+              </div>
+            </div>
+            
+            <!-- Date posted -->
+            <div class="form-group">
+              <label for="postDate" class="col-sm-4 control-label" style="text-align: left;">posted</label>
+              <div class="col-sm-4">
+                <select class="form-control" id="postDate">
+                  <option>after</option>
+                  <option>before</option>
+                  <option>on</option>
+                </select>
+              </div>
+              <label for="date" class="sr-only">date</label>
+              <div class="col-sm-4">
+                <input type="date" class="form-control" id="date">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="likes" class="col-sm-4 control-label" style="text-align: left;">having</label>
+              <div class="col-sm-4">
+                <select class="form-control" id="likes">
+                  <option>more than</option>
+                  <option>less than</option>
+                  <option>exactly</option>
+                </select>
+              </div>
+              <label for="numLike" class="sr-only">numLike</label>
+              <div class="col-sm-3">
+                <input type="text" class="form-control" id="numLike" placeholder="number of">
+              </div>
+              <div class="col-sm-1" style="padding-left: 10px;">
+                <span class="glyphicon glyphicon-heart" style="top: -1px;"></span>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="comments" class="col-sm-4 control-label" style="text-align: left;">and</label>
+              <div class="col-sm-4">
+                <select class="form-control" id="comments">
+                  <option>more than</option>
+                  <option>less than</option>
+                  <option>exactly</option>
+                </select>
+              </div>
+              <label for="numComment" class="sr-only">numComment</label>
+              <div class="col-sm-3">
+                <input type="text" class="form-control" id="numComment" placeholder="number of">
+              </div>
+              <div class="col-sm-1" style="padding-left: 10px;">
+                <span class="glyphicon glyphicon-comment" style="top: -1px;"></span>
+              </div>
+            </div>          
+          </div> <!-- End of advanced search -->
+          
+          <div class="form-group">
+            <div class="col-sm-10" style="text-align: right;">
+              <button id="advanced-button" class="btn btn-default" style="background-color: #fbfbfb;">Advanced search</button>
+              <button id="basic-button" class="btn btn-default" style="background-color: #fbfbfb; display: none;">Basic search</button>
+            </div>
+            <div class="col-sm-2" style="text-align: right;">
+              <button type="submit" class="btn btn-primary" style="padding-left: 18px; padding-right: 18px;">Go!</button>
+            </div>
+          </div>          
+        </form> <!-- End of text based search -->
+        
+        <!-- Image based search -->
+        <form class="form-horizontal col-sm-6" role="form" style="border-left: solid 3px black; padding-left: 5px; margin-top: -13px;">
+          
+          <!-- Find images/videos -->
+          <div class="form-group" style="margin-left: 15px; padding-right: 15px;">
+            <label for="image" class="col-sm-11 control-label" style="text-align: left; margin-left: -15px;">Find an image which looks like this:</label>
+            <div style="display: table; width: 100%; box-sizing: border-box; cursor: pointer;">
+              <div id="image" class="upload-box" style="display: table-cell; width: 100%;">
+                Drag and drop an image here<br>or click to upload
+              </div>
+            </div>
+          </div>
+        </form>
+        
+      </div><!-- /container -->
+    </div>
+    
+    <!-- About -->
+    <div class="jumbotron" style="background-image: url('assets/about.jpg'); background-size: 100%; color: white;">
+      <div class="container">
+        <h1 style="text-align: center; margin-bottom: 50px;">About</h1>
+                <!-- About image -->
+        <div class="col-sm-5">
+          <img src="assets/about-ppl.png" width="445px;" style="padding-left: 0px;">
+        </div>
+        <!-- About Text -->
+        <div class="col-sm-7 about" style="text-align: right;">
+          <p>
+            Have you ever gotten frustrated at how limited the search provided by Instagram is? If your answer is <strong>yes</strong>, then Search-a-gram was built with <strong>you</strong> in mind! This web app provides powerful text and image based Instagram searches, all at the click of a button.
+          </p>
+          <p>
+            Search-a-gram was written by two students (yes, students!) as part of a course in the NUS School of Computing. <strong>Yong Jie</strong> is the software engineer who does the complicated work of finding the data you want. This data is then passed to <strong>Sarah</strong>, who visualises everything as what you see here.
+          </p>
+          <p>
+            Search-a-gram is still in its alpha stages, so if there's anything you like or want to suggest, feel free to <a href="#">drop us some feedback</a>!
+          </p>
+        </div>
+            
+
+      </div><!-- /container -->
+    </div>
+    
+    <!-- Vote -->
+    <div style="background-image: url('assets/bottom.jpg'); background-size: 100%;">
+      <div class="jumbotron">
+        <div class="container">
+          <h1 style="margin-top: 5px;">Like Search-a-gram?</h1>
+          <h2>Give us a thumbs up by voting for us!</h2>
+          <h4 style="margin-top: 20px;">Our project ID is "3246-08: Advanced Search Functions on Instagram".</h4>
+
+          <div style="text-align: center;">
+            <a href="https://docs.google.com/forms/d/1I4QxMBs8dYjeHpFCDgvcKWF0R-xePPsjQk5P_3QdKbM/viewform"><button class="btn btn-primary" style="padding: 20px 50px; margin-top: 30px; font-size: 30px">Vote</button></a>
+          </div>
+        </div><!-- /container -->
+      </div>
+      
+        <footer>
+          <div class="container">
+            <div class="col-sm-3" style="margin-top: 13px;">
+              <p>&copy; Search-a-gram 2013</p>
+            </div>
+          </div><!-- /container -->
+        </footer>
+    </div>
+
+  </body>
+</html>

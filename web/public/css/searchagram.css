@@ -1,0 +1,47 @@
+.form-horizontal .control-label {
+  padding-top: 0px;
+  margin-top: -3px;
+}
+#search {
+  background-color: #fbfbfb;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  display: table;
+  width: 100%;
+}
+.upload-box {
+  border-radius: 8px;
+  border: dashed 3px #cccccc;
+  background-color: #fbfbfb;
+  color: gray;
+  clear: both;
+  height: 180px;
+  text-align: center;
+  vertical-align: middle;
+  transition: 1s all;
+}
+.expanded-upload-box {
+  height: 415px;
+}
+.advanced-search {
+  overflow: hidden;
+  height: 0px;
+  transition: 1s all;
+}
+.advanced-search-shown {
+  height: 234px;
+}
+.about a {
+  color: #999999;
+}
+.about a:hover{
+  color: #cccccc;
+}
+.jumbotron h1, .jumbotron h2, .jumbotron h4 {
+  font-family: 'Roboto', sans-serif;
+  text-align: center;
+}
+.jumbotron {
+  margin-bottom: 0px;
+  background-color: transparent;
+}

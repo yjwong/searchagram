@@ -1,0 +1,43 @@
+doctype 5
+html(lang="en")
+  head
+    title GooHoo! Search Engine
+    meta(charset="utf-8")
+
+    // Bootstrap Core CSS
+    link(href="vendor/bootstrap-3.0.0/dist/css/bootstrap.css", rel="stylesheet")
+    
+    // Google Web Fonts
+    link(href="http://fonts.googleapis.com/css?family=Open+Sans:400,700,300,400italic,700italic,300italic", rel="stylesheet")
+
+    // GooHoo CSS
+    link(href="main.css", rel="stylesheet")
+    
+    // jQuery
+    script(src="vendor/jquery-1.10.2/jquery-1.10.2.js")
+    script(src="main.js")
+
+  body
+    div.container
+      div.text-center
+        // GooHoo logo
+        div#logo
+          span.logo-g1 G
+          span.logo-o2 o
+          span.logo-o3 o
+          span.logo-h4 H
+          span.logo-o5 o
+          span.logo-o6 o
+        p#tagline(style="padding-bottom: 10px;")  Image Search Engine
+      form.form#search-form(role="form", action="/search", method="POST", enctype="multipart/form-data")
+        // Search bar
+        div.col-sm-6.col-sm-offset-3#image-upload
+          div.description Select an 
+            b image
+            |  to search 
+        input#upload-field(type="file", name="image", accept="image/jpeg,image/png")
+    div.text-center#footer
+//-      | &copy; 2013 Wong Yong Jie &amp; Sarah Tan. All Rights Reserved.
+
+
+//- vim: set ts=2 sw=2 et:
