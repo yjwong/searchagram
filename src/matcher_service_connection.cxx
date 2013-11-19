@@ -301,8 +301,9 @@ namespace SearchAGram {
 
     // Build the query.
     std::string query = "SELECT DISTINCT `images`.`id`, `images`.`link`, "
-      "`images`.`caption`, `source_images`.`url` FROM `images`, `tags`, "
-      "`source_images` WHERE ";
+      "`source_images`.`url`, `images`.`caption`, `images`.`likes_count`, "
+      "`images`.`comments_count` FROM `images`, `tags`, `source_images` "
+      "WHERE ";
     if (type != "all") {
       query = query + "`type` = :type AND ";
     } else {
@@ -364,7 +365,16 @@ namespace SearchAGram {
     query = query + ":comments AND ";
     query = query + "`images`.`id` = `tags`.`image_id` AND ";
     query = query + "`images`.`id` = `source_images`.`image_id` AND ";
-    query = query + "`source_images`.`name` = 'thumbnail' LIMIT 0, 30";
+    query = query + "`source_images`.`name` = 'thumbnail' ";
+
+    // AND clause for hashtags.
+    if (hashtags.size () > 0) {
+      query = query + "GROUP BY `images`.`created_time` HAVING COUNT "
+        "(DISTINCT `tags`.`tag`) = " +
+        boost::lexical_cast<std::string> (hashtags.size ()) + " ";
+    }
+    
+    query = query + "LIMIT 0, 30";
 
     BOOST_LOG_TRIVIAL (info) << "query: " << query;
     
@@ -379,6 +389,9 @@ namespace SearchAGram {
     std::string result_link;
     std::string result_url;
     std::string result_caption;
+    int result_likes_count;
+    int result_comments_count;
+
     auto temp = (session.prepare << query);
     temp , soci::use (type, "type"), soci::use (user_id, "user_id"),
          soci::use (filter, "filter");
@@ -388,7 +401,8 @@ namespace SearchAGram {
     temp , soci::use (date, "date"), soci::use (likes, "likes"),
          soci::use (comments, "comments"),
         soci::into (result_id), soci::into (result_link),
-        soci::into (result_url), soci::into (result_caption);
+        soci::into (result_url), soci::into (result_caption),
+        soci::into (result_likes_count), soci::into (result_comments_count);
 
     soci::statement stmt (temp);
     stmt.execute ();
@@ -400,6 +414,8 @@ namespace SearchAGram {
       result["link"] = result_link;
       result["url"] = result_url;
       result["caption"] = result_caption;
+      result["likes_count"] = result_likes_count;
+      result["comments_count"] = result_comments_count;
 
       results.append (result);
     }
