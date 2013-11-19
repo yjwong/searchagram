@@ -45,3 +45,20 @@
   margin-bottom: 0px;
   background-color: transparent;
 }
+
+/* Completion list styles */
+#users-completion-list a {
+  display: block;
+}
+
+#users-completion-list .profile_picture {
+  height: 24px;
+  width: auto;
+}
+
+#users-completion-list .username {
+  margin-left: 8px;
+  margin-right: 8px;
+}
+
+/* vim: set ts=2 sw=2 et: */

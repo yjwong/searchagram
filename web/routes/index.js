@@ -17,7 +17,7 @@
  * limitations under the License.
  * ======================================================================== */
 
-exports.index = function (req, res) {
+exports.test = function (req, res) {
   res.render ('index', { title: 'Home' });
 
   var config = require ('../config');
@@ -48,6 +48,67 @@ exports.index = function (req, res) {
     });
   });
 };
+
+exports.get_filters = function (req, res) {
+  var config = require ('../config');
+  var net = require ('net');
+  var socket = new net.Socket ({type: 'tcp4' });
+
+  socket.connect (config.backend.port, function () {
+    var str = JSON.stringify ({
+      "action": "get_filters"
+    });
+
+    socket.write (str);
+    socket.write ('\n');
+
+    var results = null;
+    socket.on ('data', function (data) {
+      if (results == null) {
+        results = data;
+      } else {
+        results = Buffer.concat ([results, data]);
+      }
+    });
+
+    socket.on ('close', function () {
+      var data = results.toString ();
+      data = JSON.parse (data);
+      res.json (data);
+    });
+  });
+};
+
+exports.autocomplete_users = function (req, res) {
+  var config = require ('../config');
+  var net = require ('net');
+  var socket = new net.Socket ({type: 'tcp4' });
+
+  socket.connect (config.backend.port, function () {
+    var str = JSON.stringify ({
+      "action": "autocomplete_users",
+      "query": req.query.query
+    });
+
+    socket.write (str);
+    socket.write ('\n');
+
+    var results = null;
+    socket.on ('data', function (data) {
+      if (results == null) {
+        results = data;
+      } else {
+        results = Buffer.concat ([results, data]);
+      }
+    });
+
+    socket.on ('close', function () {
+      var data = results.toString ();
+      data = JSON.parse (data);
+      res.json (data);
+    });
+  });
+}
 
 exports.get_image = function (req, res) {
   var net = require ('net');

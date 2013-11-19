@@ -59,7 +59,7 @@
     <index_manager>
         <!-- TODO: Not implemented yet -->
         <backend>sqlite3</backend>
-        <purge>true</purge>
+        <purge>false</purge>
 
         <backends>
             <sqlite3>

@@ -22,6 +22,7 @@
 
 #include "boost/bind.hpp"
 #include "boost/filesystem.hpp"
+#include "boost/lexical_cast.hpp"
 #include "boost/log/trivial.hpp"
 
 #include "opencv2/opencv.hpp"
@@ -102,6 +103,12 @@ namespace SearchAGram {
           if (action == "search") {
             handle_search_ (root, response);
 
+          } else if (action == "get_filters") {
+            handle_get_filters_ (root, response);
+           
+          } else if (action == "autocomplete_users") {
+            handle_autocomplete_users_ (root, response);
+
           } else {
             response["status"] = 4;
             response["description"] = "unknown action";
@@ -159,6 +166,86 @@ namespace SearchAGram {
         //response["status"] = 0;
         //response["results"] = results;
       }
+    }
+  }
+
+  void MatcherServiceConnection::handle_get_filters_ (
+      const Json::Value& root, Json::Value& response) {
+    // Retrieve ALL the filters! :D
+    IndexManager& manager = IndexManager::getInstance ();
+    soci::session& session = manager.obtainSession ();
+    
+    Json::Value results;
+    std::string filter;
+
+    soci::statement stmt = (session.prepare <<
+        "SELECT DISTINCT `filter` FROM `images`", soci::into (filter));
+    stmt.execute ();
+
+    // Collate the results!
+    while (stmt.fetch ()) {
+      Json::Value result = filter;
+      results.append (result);
+    }
+
+    manager.releaseSession ();
+    response["status"] = 0;
+    response["results"] = results;
+  }
+
+  void MatcherServiceConnection::handle_autocomplete_users_ (
+      const Json::Value& root, Json::Value& response) {
+    if (!root.isMember ("query")) {
+      response["status"] = 21;
+      response["description"] = "query is missing";
+
+    } else if (!root["query"].isString ()) {
+      response["status"] = 22;
+      response["description"] = "query is not a string";
+
+    } else {
+      // Check how many users we are supposed to autocomplete.
+      int max_entries = 10;
+      if (root.isMember ("max_entries") && root["max_entries"].isInt ()) {
+        max_entries = root["max_entries"].asInt ();
+      }
+
+      // If query length is too short, we don't return results.
+      Json::Value results;
+      std::string query = root["query"].asString ();
+      if (query.length () >= 1) {
+        // Fetch users in ascending order, limit to number of results.
+        query = "%" + query + "%";
+        IndexManager& manager = IndexManager::getInstance ();
+        soci::session& session = manager.obtainSession ();
+
+        std::string username;
+        std::string full_name;
+        std::string profile_picture;
+
+        soci::statement stmt = (session.prepare <<
+            "SELECT `username`, `full_name`, `profile_picture` FROM "
+            "`users` WHERE `username` LIKE :username LIMIT 0," +
+            boost::lexical_cast<std::string> (max_entries), soci::use (query),
+            soci::into (username), soci::into (full_name),
+            soci::into (profile_picture));
+        stmt.execute ();
+
+        // Collate the results!
+        while (stmt.fetch ()) {
+          Json::Value result;
+          result["username"] = username;
+          result["full_name"] = full_name;
+          result["profile_picture"] = profile_picture;
+
+          results.append (result);
+        }
+
+        manager.releaseSession ();
+      }
+
+      response["status"] = 0;
+      response["results"] = results;
     }
   }
 

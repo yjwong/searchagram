@@ -40,6 +40,9 @@ namespace SearchAGram {
     std::string clean_buffer_;
 
     void handle_search_ (const Json::Value& root, Json::Value& response);
+    void handle_get_filters_ (const Json::Value& root, Json::Value& response);
+    void handle_autocomplete_users_ (const Json::Value& root,
+        Json::Value& response);
 
     void handle_write_ (const boost::system::error_code& error,
         size_t bytes_transferred);

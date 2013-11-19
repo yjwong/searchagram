@@ -27,11 +27,11 @@ namespace asio = boost::asio;
 
 namespace SearchAGram {
   MatcherService::MatcherService (asio::io_service& io_service) :
+      port_ (Config::get<short> (CONFIG_PORT_KEY)),
       acceptor_ (io_service, asio::ip::tcp::endpoint (
           asio::ip::tcp::v4 (), port_
       )),
       io_service_ (io_service) {
-    port_ = Config::get<short> (CONFIG_PORT_KEY);
     start_accept_ ();
   }
 
