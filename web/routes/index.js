@@ -124,8 +124,8 @@ exports.search = function (req, res) {
       })
       .map (function (value, index, hashtags) {
         value = value.trim ();
-        if (value.substring (0, 1) != "#") {
-          value = "#" + value;
+        if (value.substring (0, 1) == "#") {
+          value = value.substring (1);
         }
 
         return value;

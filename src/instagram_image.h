@@ -54,11 +54,13 @@ namespace SearchAGram {
     };
 
     /* Represents an Instagram caption */
+    /*
     struct Caption {
       std::string id;
       std::string text;
       int created_time;
     };
+    */
 
     std::string id;
     std::string type;
@@ -67,7 +69,8 @@ namespace SearchAGram {
     std::vector<std::string> tags;
     std::vector<InstagramComment> comments;
     int comments_count;
-    Caption caption;
+    //Caption caption;
+    std::string caption;
     std::vector<InstagramLike> likes;
     int likes_count;
     std::string link;
@@ -90,6 +93,7 @@ namespace soci {
       i.type = v.get<std::string> ("type");
       i.filter = v.get<std::string> ("filter");
       i.comments_count = v.get<int> ("comments_count");
+      i.caption = v.get<std::string> ("caption");
       i.likes_count = v.get<int> ("likes_count");
       i.link = v.get<std::string> ("link");
       i.user.id = v.get<std::string> ("user_id");
@@ -103,6 +107,7 @@ namespace soci {
       v.set ("type", i.type);
       v.set ("filter", i.filter);
       v.set ("comments_count", i.comments_count);
+      v.set ("caption", i.caption);
       v.set ("likes_count", i.likes_count);
       v.set ("link", i.link);
       v.set ("user_id", i.user.id);

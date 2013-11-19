@@ -163,6 +163,7 @@ namespace SearchAGram {
       readMetadataFilter_ (image, root, line_num);
       if (!readMetadataTags_ (image, root, line_num)) continue;
       readMetadataCommentsCount_ (image, root, line_num);
+      readMetadataCaption_ (image, root, line_num);
       readMetadataLikesCount_ (image, root, line_num);
       if (!readMetadataLink_ (image, root, line_num)) continue;
       if (!readMetadataUser_ (image, root, line_num)) continue;
@@ -273,6 +274,36 @@ namespace SearchAGram {
         image.comments_count = 0;
       } else {
         image.comments_count = root["comtct"].asInt ();
+      }
+    }
+  }
+
+  void NextDataSource::readMetadataCaption_ (InstagramImage& image,
+      Json::Value& root, int line_num) {
+    if (!root.isMember ("caption")) {
+      BOOST_LOG_TRIVIAL (warning) << "no caption, but continuing anyway "
+        "(line " << line_num << ")";
+      image.caption = "";
+    } else {
+      if (!root["caption"].isObject ()) {
+        BOOST_LOG_TRIVIAL (warning) << "caption is not an object, but "
+          "continuing anyway (line " << line_num << ")";
+        image.caption = "";
+      } else {
+        Json::Value caption = root["caption"];
+        if (!caption.isMember ("text")) {
+          BOOST_LOG_TRIVIAL (warning) << "no caption.text, but continuing "
+            "anyway (line " << line_num << ")";
+          image.caption = "";
+        } else {
+          if (!caption["text"].isString ()) {
+            BOOST_LOG_TRIVIAL (warning) << "caption.text is not a string, "
+              "but continuing anyway (line " << line_num << ")";
+            image.caption = "";
+          } else {
+            image.caption = caption["text"].asString ();
+          }
+        }
       }
     }
   }

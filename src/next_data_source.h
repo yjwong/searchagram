@@ -65,6 +65,8 @@ namespace SearchAGram {
         int line_num);
     void readMetadataCommentsCount_ (InstagramImage& image, Json::Value& root,
         int line_num);
+    void readMetadataCaption_ (InstagramImage& image, Json::Value& root,
+        int line_num);
     void readMetadataLikesCount_ (InstagramImage& image, Json::Value& root,
         int line_num);
     bool readMetadataLink_ (InstagramImage& image, Json::Value& root,

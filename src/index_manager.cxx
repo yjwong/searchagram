@@ -110,10 +110,10 @@ namespace SearchAGram {
   void IndexManager::createInstagramImage (const InstagramImage& image) {
     lock_.lock ();
     session_ << "INSERT OR IGNORE INTO `images` (`id`, `user_id`, `type`, "
-      "`filter`, `comments_count`, `likes_count`, `link`, `created_time`, "
-      "`user_has_liked`) VALUES (:id, :user_id, :type, :filter, "
-      ":comments_count, :likes_count, :link, :created_time, :user_has_liked)",
-      soci::use (image);
+      "`filter`, `comments_count`, `caption`, `likes_count`, `link`, "
+      "`created_time`, `user_has_liked`) VALUES (:id, :user_id, :type, "
+      ":filter, :comments_count, :caption, :likes_count, :link, :created_time, "
+      ":user_has_liked)", soci::use (image);
 
     for (const std::string& tag : image.tags) {
       session_ << "INSERT OR IGNORE INTO `tags` (`image_id`, `tag`) VALUES "
@@ -217,6 +217,7 @@ namespace SearchAGram {
       "`type` VARCHAR(16) NOT NULL ,"
       "`filter` TEXT NULL ,"
       "`comments_count` INT NULL DEFAULT 0 ,"
+      "`caption` TEXT NULL ,"
       "`likes_count` INT NULL DEFAULT 0 ,"
       "`link` TEXT NOT NULL ,"
       "`created_time` DATETIME NOT NULL ,"

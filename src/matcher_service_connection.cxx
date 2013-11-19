@@ -145,8 +145,7 @@ namespace SearchAGram {
     std::vector<std::string> hashtags;
     std::string filter = "Normal";
     std::string date_interval = "lt";
-    std::time_t now = std::time (NULL);
-    std::tm* date = std::gmtime (&now);
+    int date = std::time (NULL);
     std::string likes_interval = "gt";
     int likes = -1;
     std::string comments_interval = "gt";
@@ -155,9 +154,9 @@ namespace SearchAGram {
     // Perform type validation.
     if (root.isMember ("type") && root["type"].isString ()) {
       type = root["type"].asString ();
-      if (type != "all" && type != "videos" && type != "images") {
+      if (type != "all" && type != "video" && type != "image") {
         response["status"] = 11;
-        response["description"] = "type must be either all, videos or images";
+        response["description"] = "type must be either all, video or image";
         return;
       }
     }
@@ -221,8 +220,7 @@ namespace SearchAGram {
 
     if (root.isMember ("date") && root["date"].size () > 0) {
       if (root["date"].isInt ()) {
-        std::time_t time = root["date"].asInt ();
-        date = std::gmtime (&time);
+        date = root["date"].asInt ();
       } else {
         response["status"] = 18;
         response["description"] = "date must be an integer";
@@ -282,9 +280,120 @@ namespace SearchAGram {
       }
     }
 
+    // Resolve the username.
+    std::string user_id;
+    if (username.length () > 0) {
+      IndexManager& manager = IndexManager::getInstance ();
+      soci::session& session = manager.obtainSession ();
+      session << "SELECT `id` FROM `users` WHERE `username` = :username",
+        soci::use (username), soci::into (user_id);
+
+      if (!session.got_data ()) {
+        // No such user, and therefore no results.
+        response["status"] = 0;
+        response["results"] = Json::Value ();
+        manager.releaseSession ();
+        return;
+      }
+      
+      manager.releaseSession ();
+    }
+
     // Build the query.
-    //std::string query = "SELECT * FROM `images` WHERE 
+    std::string query = "SELECT DISTINCT `images`.`id`, `images`.`link`, "
+      "`source_images`.`url` FROM `images`, `tags`, `source_images` WHERE ";
+    if (type != "all") {
+      query = query + "`type` = :type AND ";
+    } else {
+      query = query + ":type = :type AND ";
+    }
+
+    if (user_id.length () > 0) {
+      query = query + "`user_id` = :user_id AND ";
+    } else {
+      query = query + ":user_id = :user_id AND ";
+    }
+
+    if (hashtags.size () > 0) {
+      query = query + "(";
+      for (const std::string& hashtag : hashtags) {
+        query = query + "`tags`.`tag` = '" + hashtag + "' OR ";
+      }
+
+      query = std::string (query.begin (), query.end () - 4);
+      query = query + ") AND ";
+    }
+
+    if (filter.length () > 0) {
+      query = query + "`filter` = :filter AND ";
+    } else {
+      query = query + ":filter = :filter AND ";
+    }
+
+    query = query + "`created_time` ";
+    if (date_interval == "lt") {
+      query = query + "< ";
+    } else if (date_interval == "gt") {
+      query = query + "> ";
+    } else {
+      query = query + "= ";
+    }
+    query = query + ":date AND ";
+
+    query = query + "`likes_count` ";
+    if (likes_interval == "lt") {
+      query = query + "< ";
+    } else if (likes_interval == "gt") {
+      query = query + "> ";
+    } else {
+      query = query + "= ";
+    }
+    query = query + ":likes AND ";
+
+    query = query + "`comments_count` ";
+    if (comments_interval == "lt") {
+      query = query + "< ";
+    } else if (comments_interval == "gt") {
+      query = query + "> ";
+    } else {
+      query = query + "= ";
+    }
+    query = query + ":comments AND ";
+    query = query + "`images`.`id` = `tags`.`image_id` AND ";
+    query = query + "`images`.`id` = `source_images`.`image_id` AND ";
+    query = query + "`source_images`.`name` = 'thumbnail' LIMIT 0, 30";
+
+    BOOST_LOG_TRIVIAL (info) << "query: " << query;
     
+    // Run the query.
+    IndexManager& manager = IndexManager::getInstance ();
+    soci::session& session = manager.obtainSession ();
+    
+    Json::Value results;
+    std::string result_id;
+    std::string result_link;
+    std::string result_url;
+    soci::statement stmt = (session.prepare << query,
+        soci::use (type, "type"), soci::use (user_id, "user_id"), 
+        soci::use (filter, "filter"), soci::use (date, "date"),
+        soci::use (likes, "likes"), soci::use (comments, "comments"),
+        soci::into (result_id), soci::into (result_link),
+        soci::into (result_url));
+    stmt.execute ();
+
+    // Collate the results!
+    while (stmt.fetch ()) {
+      Json::Value result;
+      result["id"] = result_id;
+      result["link"] = result_link;
+      result["url"] = result_url;
+
+      results.append (result);
+    }
+
+    manager.releaseSession ();
+
+    response["results"] = results;
     response["status"] = 0;
   }
 
