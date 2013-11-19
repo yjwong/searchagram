@@ -153,13 +153,6 @@ namespace SearchAGram {
         IndexManager& manager = IndexManager::getInstance ();
         manager.createInstagramUser (image.user);
         manager.createInstagramImage (image);
-        for (std::pair<std::string, InstagramImage::SourceImage> source_image :
-            image.images) {
-          manager.createInstagramSourceImage (
-            source_image.first, 
-            source_image.second,
-            image);
-        }
 
         // Test: RGB as feature vector.
         RGBHistogram histogram (image_mat);

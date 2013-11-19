@@ -47,9 +47,10 @@ if ('development' == config.env) {
 
 // Routes configuration.
 var routes = require ('./routes');
-//app.get ('/', routes.index);
-app.get ('/get_image/:filename', routes.get_image);
-app.post ('/search', routes.search);
+
+app.get ('/search', routes.search);
+app.get ('/search', routes.image_search);
+
 app.get ('/get_filters', routes.get_filters);
 app.get ('/autocomplete/users', routes.autocomplete_users);
 app.get ('/test', routes.test);

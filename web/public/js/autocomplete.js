@@ -79,6 +79,10 @@ jQuery (document).ready (function () {
               .append (jQuery (document.createElement ('span'))
                 .append (results[i].username)
                 .addClass ('username'))
+              .append (jQuery (document.createElement ('span'))
+                .append (results[i].full_name)
+                .addClass ('full-name')
+                .addClass ('text-muted'))
               .click (function (click_event) {
                 var username = jQuery (this).find ('.username').html ();
                 jQuery (user_field).val (username);

@@ -110,46 +110,62 @@ exports.autocomplete_users = function (req, res) {
   });
 }
 
-exports.get_image = function (req, res) {
+exports.search = function (req, res) {
+  var config = require ('../config');
   var net = require ('net');
   var socket = new net.Socket ({type: 'tcp4' });
 
-  setTimeout (function () {
-    socket.connect (9192, function () {
-      var str = JSON.stringify ({
-        "action": "get_image",
-        "filename": req.params.filename
-      });
-
-      socket.write (str);
-      socket.write ('\n');
-
-      var results = null;
-      socket.on ('data', function (data) {
-        if (results == null) {
-          results = data;
-        } else {
-          results = Buffer.concat ([results, data]);
+  socket.connect (config.backend.port, function () {
+    // Preprocess some search parameters.
+    var hashtags = req.query.hashtags
+      .split (",")
+      .filter (function (value, index, hashtags) {
+        return value;
+      })
+      .map (function (value, index, hashtags) {
+        value = value.trim ();
+        if (value.substring (0, 1) != "#") {
+          value = "#" + value;
         }
+
+        return value;
       });
 
-      socket.on ('close', function () {
-        var data = results.toString ();
-        data = JSON.parse (data);
-        
-        if (data.status == 0) {
-          res.type (data.mime);
-          res.send (new Buffer (data.image, 'base64'));
-
-        } else {
-          res.send (500, data.description);
-        }
-      });
+    var str = JSON.stringify ({
+      "action": "search",
+      "type": req.query.type,
+      "username": req.query.username,
+      "hashtags": hashtags,
+      "filter": req.query.filter,
+      "date_interval": req.query.date_interval,
+      "date": req.query.date,
+      "likes_interval": req.query.likes_interval,
+      "likes": req.query.likes,
+      "comments_interval": req.query.comments_interval,
+      "comments": req.query.comments
     });
-  }, 1000);
-};
 
-exports.search = function (req, res) {
+    socket.write (str);
+    socket.write ('\n');
+
+    var results = null;
+    socket.on ('data', function (data) {
+      if (results == null) {
+        results = data;
+      } else {
+        results = Buffer.concat ([results, data]);
+      }
+    });
+
+    socket.on ('close', function () {
+      var data = results.toString ();
+      data = JSON.parse (data);
+      res.json (data);
+    });
+  });
+}
+
+exports.image_search = function (req, res) {
   var net = require ('net');
   var socket = new net.Socket ({type: 'tcp4' });
   var fs = require ('fs');

@@ -103,6 +103,9 @@ namespace SearchAGram {
           if (action == "search") {
             handle_search_ (root, response);
 
+          } else if (action == "image_search") {
+            handle_image_search_ (root, response);
+
           } else if (action == "get_filters") {
             handle_get_filters_ (root, response);
            
@@ -136,12 +139,163 @@ namespace SearchAGram {
 
   void MatcherServiceConnection::handle_search_ (const Json::Value& root,
       Json::Value& response) {
+    // Set some sane defaults.
+    std::string type = "all";
+    std::string username = "";
+    std::vector<std::string> hashtags;
+    std::string filter = "Normal";
+    std::string date_interval = "lt";
+    std::time_t now = std::time (NULL);
+    std::tm* date = std::gmtime (&now);
+    std::string likes_interval = "gt";
+    int likes = -1;
+    std::string comments_interval = "gt";
+    int comments = -1;
+
+    // Perform type validation.
+    if (root.isMember ("type") && root["type"].isString ()) {
+      type = root["type"].asString ();
+      if (type != "all" && type != "videos" && type != "images") {
+        response["status"] = 11;
+        response["description"] = "type must be either all, videos or images";
+        return;
+      }
+    }
+
+    if (root.isMember ("username")) {
+      if (root["username"].isString ()) {
+        username = root["username"].asString ();
+      } else {
+        response["status"] = 12;
+        response["description"] = "username must be a string";
+        return;
+      }
+    }
+
+    if (root.isMember ("hashtags")) {
+      if (root["hashtags"].isArray ()) {
+        for (Json::ArrayIndex i = 0; i < root["hashtags"].size (); i++) {
+          Json::Value hashtag = root["hashtags"][i];
+          if (!hashtag.isString ()) {
+            response["status"] = 14;
+            response["description"] = "hashtags must be an array containing "
+              "strings";
+            return;
+          } else {
+            hashtags.push_back (hashtag.asString ());
+          }
+        }
+
+      } else {
+        response["status"] = 13;
+        response["description"] = "hashtags must be an array";
+        return;
+      }
+    }
+
+    if (root.isMember ("filter")) {
+      if (root["filter"].isString ()) {
+        filter = root["filter"].asString ();
+      } else {
+        response["status"] = 15;
+        response["description"] = "filter must be a string";
+        return;
+      }
+    }
+
+    if (root.isMember ("date_interval")) {
+      if (root["date_interval"].isString ()) {
+        date_interval = root["date_interval"].asString ();
+        if (date_interval != "gt" && date_interval != "lt" &&
+            date_interval != "eq") {
+          response["status"] = 16;
+          response["description"] = "date_interval must be either gt, lt or eq";
+          return;
+        }
+      } else {
+        response["status"] = 17;
+        response["description"] = "date_interval must be a string";
+        return;
+      }
+    }
+
+    if (root.isMember ("date") && root["date"].size () > 0) {
+      if (root["date"].isInt ()) {
+        std::time_t time = root["date"].asInt ();
+        date = std::gmtime (&time);
+      } else {
+        response["status"] = 18;
+        response["description"] = "date must be an integer";
+        return;
+      }
+    }
+
+    if (root.isMember ("likes_interval")) {
+      if (root["likes_interval"].isString ()) {
+        likes_interval = root["likes_interval"].asString ();
+        if (likes_interval != "gt" && likes_interval != "lt" &&
+            likes_interval != "eq") {
+          response["status"] = 19;
+          response["description"] = "likes_interval must be either gt, lt or eq";
+          return;
+        }
+      } else {
+        response["status"] = 20;
+        response["description"] = "likes_interval must be a string";
+        return;
+      }
+    }
+
+    if (root.isMember ("likes") && root["likes"].size () > 0) {
+      if (root["likes"].isInt ()) {
+        likes = root["likes"].asInt ();
+      } else {
+        response["status"] = 21;
+        response["description"] = "likes must be an integer";
+        return;
+      }
+    }
+
+    if (root.isMember ("comments_interval")) {
+      if (root["comments_interval"].isString ()) {
+        comments_interval = root["comments_interval"].asString ();
+        if (comments_interval != "gt" && comments_interval != "lt" &&
+            comments_interval != "eq") {
+          response["status"] = 22;
+          response["description"] = "comments_interval must be either gt, lt or eq";
+          return;
+        }
+      } else {
+        response["status"] = 23;
+        response["description"] = "comments_interval must be a string";
+        return;
+      }
+    }
+
+    if (root.isMember ("comments") && root["comments"].size () > 0) {
+      if (root["comments"].isInt ()) {
+        comments = root["comments"].asInt ();
+      } else {
+        response["status"] = 24;
+        response["description"] = "comments must be an integer";
+        return;
+      }
+    }
+
+    // Build the query.
+    //std::string query = "SELECT * FROM `images` WHERE 
+    
+    response["status"] = 0;
+  }
+
+  void MatcherServiceConnection::handle_image_search_ (const Json::Value& root,
+      Json::Value& response) {
     if (!root.isMember ("query")) {
-      response["status"] = 11;
+      response["status"] = 31;
       response["description"] = "query is missing";
       
     } else if (!root["query"].isString ()) {
-      response["status"] = 12;
+      response["status"] = 32;
       response["description"] = "query is not a string";
 
     } else {
@@ -151,7 +305,7 @@ namespace SearchAGram {
       // Perform image analysis.
       cv::Mat image = cv::imdecode (cv::Mat (query), CV_LOAD_IMAGE_COLOR);
       if (image.data == NULL) {
-        response["status"] = 13;
+        response["status"] = 33;
         response["description"] = "query is not an image";
 
       } else {
@@ -196,11 +350,11 @@ namespace SearchAGram {
   void MatcherServiceConnection::handle_autocomplete_users_ (
       const Json::Value& root, Json::Value& response) {
     if (!root.isMember ("query")) {
-      response["status"] = 21;
+      response["status"] = 41;
       response["description"] = "query is missing";
 
     } else if (!root["query"].isString ()) {
-      response["status"] = 22;
+      response["status"] = 42;
       response["description"] = "query is not a string";
 
     } else {

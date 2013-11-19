@@ -41,10 +41,6 @@ namespace SearchAGram {
 
     void createInstagramUser (const InstagramUser& user);
     void createInstagramImage (const InstagramImage& image);
-    void createInstagramSourceImage (
-        const std::string& name,
-        const InstagramImage::SourceImage& source_image,
-        const InstagramImage& image);
     void createVector (const std::string& name, const InstagramImage& image,
         const cv::Mat& vector);
     

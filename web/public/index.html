@@ -51,16 +51,16 @@
         <h1 style="text-align: center; margin-bottom: 50px;">I want to...</h1>
         
         <!-- Text based search -->
-        <form class="form-horizontal col-sm-6" role="form">
+        <form class="form-horizontal col-sm-6" role="form" method="GET" action="/search">
           
           <!-- Find images/videos -->
           <div class="form-group">
             <label for="find" class="col-sm-4 control-label" style="text-align: left;">Find</label>
             <div class="col-sm-8">
-              <select class="form-control" id="find">
-                <option>images and videos</option>
-                <option>only images</option>
-                <option>only videos</option>
+              <select class="form-control" id="find" name="type">
+                <option value="all">images and videos</option>
+                <option value="images">only images</option>
+                <option value="videos">only videos</option>
               </select>
             </div>
           </div>
@@ -69,7 +69,7 @@
           <div class="form-group">
             <label for="user" class="col-sm-4 control-label" style="text-align: left;">uploaded by</label>
             <div class="col-sm-8">
-              <input type="text" class="form-control" id="user" placeholder="username">
+              <input type="text" class="form-control" id="user" name="username" placeholder="username">
             </div>
           </div>
           
@@ -77,7 +77,7 @@
           <div class="form-group">
             <label for="hashtag" class="col-sm-4 control-label" style="text-align: left;">with hashtags</label>
             <div class="col-sm-8">
-              <input type="text" class="form-control" id="hashtag" placeholder="hashtag1, hashtag2, hashtag3, etc.">
+              <input type="text" class="form-control" id="hashtag" name="hashtags" placeholder="hashtag1, hashtag2, hashtag3, etc.">
             </div>
           </div>
 
@@ -87,8 +87,8 @@
             <div class="form-group">
               <label for="filter" class="col-sm-4 control-label" style="text-align: left;">with the filter</label>
               <div class="col-sm-8">
-                <select class="form-control" id="filter">
-                  <option>FOR YJWONG TO FILL</option>         
+                <select class="form-control" id="filter" name="filter">
+                  <option>Populating...</option>         
                 </select>
               </div>
             </div>
@@ -97,30 +97,30 @@
             <div class="form-group">
               <label for="postDate" class="col-sm-4 control-label" style="text-align: left;">posted</label>
               <div class="col-sm-4">
-                <select class="form-control" id="postDate">
-                  <option>after</option>
-                  <option>before</option>
-                  <option>on</option>
+                <select class="form-control" id="postDate" name="date_interval">
+                  <option value="gt">after</option>
+                  <option value="lt">before</option>
+                  <option value="eq">on</option>
                 </select>
               </div>
               <label for="date" class="sr-only">date</label>
               <div class="col-sm-4">
-                <input type="date" class="form-control" id="date">
+                <input type="date" class="form-control" id="date" name="date">
               </div>
             </div>
             
             <div class="form-group">
               <label for="likes" class="col-sm-4 control-label" style="text-align: left;">having</label>
               <div class="col-sm-4">
-                <select class="form-control" id="likes">
-                  <option>more than</option>
-                  <option>less than</option>
-                  <option>exactly</option>
+                <select class="form-control" id="likes" name="likes_interval">
+                  <option value="gt">more than</option>
+                  <option value="lt">less than</option>
+                  <option value="eq">exactly</option>
                 </select>
               </div>
               <label for="numLike" class="sr-only">numLike</label>
               <div class="col-sm-3">
-                <input type="text" class="form-control" id="numLike" placeholder="number of">
+                <input type="text" class="form-control" id="numLike" name="likes" placeholder="number of">
               </div>
               <div class="col-sm-1" style="padding-left: 10px;">
                 <span class="glyphicon glyphicon-heart" style="top: -1px;"></span>
@@ -130,15 +130,15 @@
             <div class="form-group">
               <label for="comments" class="col-sm-4 control-label" style="text-align: left;">and</label>
               <div class="col-sm-4">
-                <select class="form-control" id="comments">
-                  <option>more than</option>
-                  <option>less than</option>
-                  <option>exactly</option>
+                <select class="form-control" id="comments" name="comments_interval">
+                  <option value="gt">more than</option>
+                  <option value="lt">less than</option>
+                  <option value="eq">exactly</option>
                 </select>
               </div>
               <label for="numComment" class="sr-only">numComment</label>
               <div class="col-sm-3">
-                <input type="text" class="form-control" id="numComment" placeholder="number of">
+                <input type="text" class="form-control" id="numComment" name="comments" placeholder="number of">
               </div>
               <div class="col-sm-1" style="padding-left: 10px;">
                 <span class="glyphicon glyphicon-comment" style="top: -1px;"></span>

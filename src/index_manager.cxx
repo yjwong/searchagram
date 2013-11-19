@@ -114,23 +114,25 @@ namespace SearchAGram {
       "`user_has_liked`) VALUES (:id, :user_id, :type, :filter, "
       ":comments_count, :likes_count, :link, :created_time, :user_has_liked)",
       soci::use (image);
+
+    for (const std::string& tag : image.tags) {
+      session_ << "INSERT OR IGNORE INTO `tags` (`image_id`, `tag`) VALUES "
+        "(:image_id, :tag)", soci::use (image.id), soci::use (tag);
+    }
+
+    for (const std::pair<std::string, InstagramImage::SourceImage>& pair :
+        image.images) {
+      session_ << "INSERT OR IGNORE INTO `source_images` (`image_id`, "
+        "`name`, `width`, `height`, `url`) VALUES (:image_id, :name, "
+        ":width, :height, :url)",
+        soci::use (image.id, "image_id"),
+        soci::use (pair.first, "name"), 
+        soci::use (pair.second);
+    }
+
     lock_.unlock ();
   }
 
-  void IndexManager::createInstagramSourceImage (
-      const std::string& name,
-      const InstagramImage::SourceImage& source_image, 
-      const InstagramImage& image) {
-    lock_.lock ();
-    session_ << "INSERT OR IGNORE INTO `source_images` (`image_id`, "
-      "`name`, `width`, `height`, `url`) VALUES (:image_id, :name, "
-      ":width, :height, :url)",
-      soci::use (image.id, "image_id"),
-      soci::use (name, "name"), 
-      soci::use (source_image);
-    lock_.unlock ();
-  }
-  
   void IndexManager::createVector (const std::string& name,
       const InstagramImage& image, const cv::Mat& vector) {
     lock_.lock ();
@@ -229,9 +231,24 @@ namespace SearchAGram {
     session_ << "CREATE INDEX IF NOT EXISTS `user_id` on `images` "
       "(`user_id` ASC)";
 
+    // Create the tags table.
+    session_ << "CREATE TABLE IF NOT EXISTS `tags` ("
+      "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL ,"
+      "`image_id` VARCHAR(128) NOT NULL ,"
+      "`tag` VARCHAR(128) NOT NULL ,"
+      "CONSTRAINT `fk_tags_images`"
+      "  FOREIGN KEY (`image_id` )"
+      "  REFERENCES `images` (`id` )"
+      "  ON DELETE NO ACTION "
+      "  ON UPDATE NO ACTION)";
+
+    session_ << "CREATE INDEX IF NOT EXISTS `image_id` on `tags` "
+      "(`image_id` ASC)";
+    session_ << "CREATE INDEX IF NOT EXISTS `tag` on `tags` (`tag` ASC)";
+
     // Create the source images table.
     session_ << "CREATE TABLE IF NOT EXISTS `source_images` ("
-      "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"
+      "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL ,"
       "`image_id` VARCHAR(128) NOT NULL ,"
       "`name` VARCHAR(32) NOT NULL ,"
       "`width` INT NOT NULL ,"
