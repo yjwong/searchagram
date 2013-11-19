@@ -301,7 +301,8 @@ namespace SearchAGram {
 
     // Build the query.
     std::string query = "SELECT DISTINCT `images`.`id`, `images`.`link`, "
-      "`source_images`.`url` FROM `images`, `tags`, `source_images` WHERE ";
+      "`images`.`caption`, `source_images`.`url` FROM `images`, `tags`, "
+      "`source_images` WHERE ";
     if (type != "all") {
       query = query + "`type` = :type AND ";
     } else {
@@ -315,12 +316,14 @@ namespace SearchAGram {
     }
 
     if (hashtags.size () > 0) {
-      query = query + "(";
-      for (const std::string& hashtag : hashtags) {
-        query = query + "`tags`.`tag` = '" + hashtag + "' OR ";
+      query = query + "`tags`.`tag` IN (";
+      for (std::vector<std::string>::size_type i = 0; i < hashtags.size ();
+          i++) {
+        query = query + ":hashtag" + boost::lexical_cast<std::string> (i) +
+          ", ";
       }
 
-      query = std::string (query.begin (), query.end () - 4);
+      query = std::string (query.begin (), query.end () - 2);
       query = query + ") AND ";
     }
 
@@ -368,17 +371,26 @@ namespace SearchAGram {
     // Run the query.
     IndexManager& manager = IndexManager::getInstance ();
     soci::session& session = manager.obtainSession ();
-    
+   
+    // Do parameter substitution.
+    // TODO: This part is damn ugly.
     Json::Value results;
     std::string result_id;
     std::string result_link;
     std::string result_url;
-    soci::statement stmt = (session.prepare << query,
-        soci::use (type, "type"), soci::use (user_id, "user_id"), 
-        soci::use (filter, "filter"), soci::use (date, "date"),
-        soci::use (likes, "likes"), soci::use (comments, "comments"),
+    std::string result_caption;
+    auto temp = (session.prepare << query);
+    temp , soci::use (type, "type"), soci::use (user_id, "user_id"),
+         soci::use (filter, "filter");
+    for (std::vector<std::string>::size_type i = 0; i < hashtags.size (); i++) {
+      temp , soci::use (hashtags[i], "hashtag" + boost::lexical_cast<std::string> (i));
+    }
+    temp , soci::use (date, "date"), soci::use (likes, "likes"),
+         soci::use (comments, "comments"),
         soci::into (result_id), soci::into (result_link),
-        soci::into (result_url));
+        soci::into (result_url), soci::into (result_caption);
+
+    soci::statement stmt (temp);
     stmt.execute ();
 
     // Collate the results!
@@ -387,6 +399,7 @@ namespace SearchAGram {
       result["id"] = result_id;
       result["link"] = result_link;
       result["url"] = result_url;
+      result["caption"] = result_caption;
 
       results.append (result);
     }

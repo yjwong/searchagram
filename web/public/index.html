@@ -13,6 +13,8 @@
     <link href='http://fonts.googleapis.com/css?family=Roboto:300' rel='stylesheet' type='text/css'>
     
     <script src="js/jquery-1.10.2.min.js"></script>
+    <script src="js/jquery.scrollTo.min.js"></script>
+    <script src="js/jquery.localScroll.min.js"></script>
     <script src="js/adjust-height.js"></script>
     <script src="js/advanced-search.js"></script>
     <script src="js/holder.js"></script>
@@ -33,13 +35,13 @@
             <span class="icon-bar"></span>
           </button>
           <!-- TODO: Replace this with the logo -->
-          <a class="navbar-brand" href="index.html">Search-a-gram</a>
+          <a class="navbar-brand" href="#search">Search-a-gram</a>
         </div>
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
-            <li class="active"><a href="#">Search</a></li>
-            <li><a href="#">About</a></li>
-            <li><a href="#">Vote</a></li>
+            <li class="active"><a href="#search">Search</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#vote">Vote</a></li>
           </ul>
         </div><!--/.navbar-collapse -->
       </div><!-- /container -->
@@ -99,7 +101,7 @@
               <div class="col-sm-4">
                 <select class="form-control" id="postDate" name="date_interval">
                   <option value="gt">after</option>
-                  <option value="lt">before</option>
+                  <option value="lt" selected>before</option>
                   <option value="eq">on</option>
                 </select>
               </div>
@@ -148,7 +150,7 @@
           
           <div class="form-group">
             <div class="col-sm-10" style="text-align: right;">
-              <button id="advanced-button" class="btn btn-default" style="background-color: #fbfbfb;">Advanced search</button>
+              <a id="advanced-button" class="btn btn-default" style="background-color: #fbfbfb;">Advanced search</a>
               <button id="basic-button" class="btn btn-default" style="background-color: #fbfbfb; display: none;">Basic search</button>
             </div>
             <div class="col-sm-2" style="text-align: right;">
@@ -175,6 +177,7 @@
     </div>
     
     <!-- About -->
+    <div id="about"></div>
     <div class="jumbotron" style="background-image: url('assets/about.jpg'); background-size: 100%; color: white;">
       <div class="container">
         <h1 style="text-align: center; margin-bottom: 50px;">About</h1>
@@ -200,6 +203,7 @@
     </div>
     
     <!-- Vote -->
+    <div id="vote"></div>
     <div style="background-image: url('assets/bottom.jpg'); background-size: 100%;">
       <div class="jumbotron">
         <div class="container">
