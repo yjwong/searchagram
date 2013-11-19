@@ -79,6 +79,37 @@ exports.get_filters = function (req, res) {
   });
 };
 
+exports.autocomplete_tags = function (req, res) {
+  var config = require ('../config');
+  var net = require ('net');
+  var socket = new net.Socket ({type: 'tcp4' });
+
+  socket.connect (config.backend.port, function () {
+    var str = JSON.stringify ({
+      "action": "autocomplete_tags",
+      "query": req.query.query
+    });
+
+    socket.write (str);
+    socket.write ('\n');
+
+    var results = null;
+    socket.on ('data', function (data) {
+      if (results == null) {
+        results = data;
+      } else {
+        results = Buffer.concat ([results, data]);
+      }
+    });
+
+    socket.on ('close', function () {
+      var data = results.toString ();
+      data = JSON.parse (data);
+      res.json (data);
+    });
+  });
+}
+
 exports.autocomplete_users = function (req, res) {
   var config = require ('../config');
   var net = require ('net');

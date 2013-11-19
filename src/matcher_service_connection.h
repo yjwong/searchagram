@@ -42,6 +42,8 @@ namespace SearchAGram {
     void handle_search_ (const Json::Value& root, Json::Value& response);
     void handle_image_search_ (const Json::Value& root, Json::Value& response);
     void handle_get_filters_ (const Json::Value& root, Json::Value& response);
+    void handle_autocomplete_hashtags_ (const Json::Value& root,
+        Json::Value& response);
     void handle_autocomplete_users_ (const Json::Value& root,
         Json::Value& response);
 

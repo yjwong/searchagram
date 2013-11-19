@@ -52,6 +52,7 @@ app.get ('/search', routes.search);
 app.get ('/search', routes.image_search);
 
 app.get ('/get_filters', routes.get_filters);
+app.get ('/autocomplete/tags', routes.autocomplete_tags);
 app.get ('/autocomplete/users', routes.autocomplete_users);
 app.get ('/test', routes.test);
 

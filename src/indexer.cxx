@@ -154,15 +154,12 @@ namespace SearchAGram {
         manager.createInstagramUser (image.user);
         manager.createInstagramImage (image);
 
-        // Test: RGB as feature vector.
-        RGBHistogram histogram (image_mat);
-        cv::Mat r_histogram = histogram.getHistogram (RGBHistogram::CHANNEL_RED);
-        manager.createVector ("r_histogram", image, r_histogram);
-
         // Use SURF to extract feature vectors.
-        //SurfVector surf (image_mat);
-        //cv::Mat feature_vector = surf.detect ();
-        //cv::flann::Index flann_index 
+        SurfVector surf (image_mat);
+        cv::Mat feature_vector = surf.detect ();
+        for (int i = 0; i < feature_vector.rows; i++) {
+          manager.createVector ("surf", image, feature_vector.row (i));
+        }
       });
     }
   
@@ -175,19 +172,19 @@ namespace SearchAGram {
   void Indexer::buildFlannIndex_ () {
     BOOST_LOG_TRIVIAL (info) << "indexing stage 2: building FLANN index";
 
-    // Obtain the R histogram.
+    // Obtain the SURF vectors.
     IndexManager& manager = IndexManager::getInstance ();
-    std::vector<cv::Mat> r_histograms = manager.getVectorsWithName ("r_histogram");
+    std::vector<cv::Mat> surf_vectors = manager.getVectorsWithName ("surf");
 
-    // Convert the R histogram into a multi-dimensional Mat.
-    cv::Mat r_histograms_mat (256, r_histograms.size (), CV_8UC1);
-    for (std::vector<cv::Mat>::size_type i = 0; i < r_histograms.size (); i++) {
-      r_histograms_mat.col (i) = r_histograms[i];
+    // Convert the SURF vectors into a multi-dimensional Mat.
+    cv::Mat surf_vectors_mat (64, surf_vectors.size (), CV_8UC1);
+    for (std::vector<cv::Mat>::size_type i = 0; i < surf_vectors.size (); i++) {
+      surf_vectors_mat.col (i) = surf_vectors[i];
     }
 
     // Initialize the FLANN index.
     cv::flann::Index flann_index (
-        r_histograms_mat,
+        surf_vectors_mat,
         cv::flann::LshIndexParams (20, 10, 2),
         cvflann::FLANN_DIST_EUCLIDEAN
     );

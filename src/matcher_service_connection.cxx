@@ -109,6 +109,9 @@ namespace SearchAGram {
           } else if (action == "get_filters") {
             handle_get_filters_ (root, response);
            
+          } else if (action == "get_hashtags") {
+            handle_autocomplete_hashtags_ (root, response);
+
           } else if (action == "autocomplete_users") {
             handle_autocomplete_users_ (root, response);
 
@@ -483,6 +486,55 @@ namespace SearchAGram {
     manager.releaseSession ();
     response["status"] = 0;
     response["results"] = results;
+  }
+
+  void MatcherServiceConnection::handle_autocomplete_hashtags_ (
+      const Json::Value& root, Json::Value& response) {
+    if (!root.isMember ("query")) {
+      response["status"] = 51;
+      response["description"] = "query is missing";
+
+    } else if (!root["query"].isString ()) {
+      response["status"] = 52;
+      response["description"] = "query is not a string";
+
+    } else {
+      // Check how many hashtags we are supposed to autocomplete.
+      int max_entries = 10;
+      if (root.isMember ("max_entries") && root["max_entries"].isInt ()) {
+        max_entries = root["max_entries"].asInt ();
+      }
+
+      // If query length is too short, we don't return results.
+      Json::Value results;
+      std::string query = root["query"].asString ();
+      if (query.length () >= 1) {
+        // Fetch users in ascending order, limit to number of results.
+        query = "%" + query + "%";
+        IndexManager& manager = IndexManager::getInstance ();
+        soci::session& session = manager.obtainSession ();
+
+        std::string tag;
+
+        soci::statement stmt = (session.prepare <<
+            "SELECT `tag` FROM `tags` WHERE `tag` LIKE :tag LIMIT 0," +
+            boost::lexical_cast<std::string> (max_entries), soci::use (query),
+            soci::into (tag));
+        stmt.execute ();
+
+        // Collate the results!
+        while (stmt.fetch ()) {
+          Json::Value result;
+          result["tag"] = tag;
+          results.append (result);
+        }
+
+        manager.releaseSession ();
+      }
+
+      response["status"] = 0;
+      response["results"] = results;
+    }
   }
 
   void MatcherServiceConnection::handle_autocomplete_users_ (
