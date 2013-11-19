@@ -69,6 +69,10 @@
             </sqlite3>
         </backends>
 
+        <vector_storage>
+            <dir>../data/searchagram.vectors</dir>
+        </vector_storage>
+
         <flann_index>
             <file>../data/searchagram.flann</file>
         </flann_index>

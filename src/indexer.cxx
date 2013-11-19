@@ -156,7 +156,9 @@ namespace SearchAGram {
 
         // Use SURF to extract feature vectors.
         SurfVector surf (image_mat);
+        surf.setMinHessian (1200);
         cv::Mat feature_vector = surf.detect ();
+        std::cout << feature_vector.rows << std::endl;
         for (int i = 0; i < feature_vector.rows; i++) {
           manager.createVector ("surf", image, feature_vector.row (i));
         }

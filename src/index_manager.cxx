@@ -68,6 +68,15 @@ namespace SearchAGram {
     std::string journal_mode = Config::get<std::string> (
         CONFIG_BACKEND_SQLITE3_JOURNAL_MODE_KEY);
     session_ << "PRAGMA journal_mode = " << journal_mode;
+
+    // Open the vector storage too.
+    std::string vector_storage_dir = 
+        Config::get<std::string> (CONFIG_VECTOR_STORAGE_DIR_KEY);
+    if (!filesystem::exists (vector_storage_dir)) {
+      if (!filesystem::create_directory (vector_storage_dir)) {
+        throw std::runtime_error ("unable to create vector storage directory");
+      }
+    }
   }
 
   cv::flann::Index IndexManager::loadFlannIndex () {
@@ -137,12 +146,29 @@ namespace SearchAGram {
       const InstagramImage& image, const cv::Mat& vector) {
     lock_.lock ();
 
+    /*
+    // Create the vector storage.
+    std::string vector_storage_dir = 
+        Config::get<std::string> (CONFIG_VECTOR_STORAGE_DIR_KEY);
+    filesystem::path vector_storage_path (vector_storage_dir);
+    vector_storage_path /= (name + ".vector");
+    std::ofstream vector_storage (vector_storage_path.string (),
+        std::ios::app | std::ios::binary);
+
+    // Check if open was successful.
+    if (vector_storage.fail ()) {
+      throw std::runtime_error ("error opening vector storage");
+    }
+    */
+
     // Convert the vector to binary.
     std::vector<char> data (
         vector.data,
         vector.data + (vector.elemSize () * vector.rows * vector.cols)
     );
 
+    //vector_storage.write (&data[0], data.size ());
+    
     // Prepare the blob for insertion.
     soci::blob vector_blob (session_);
     vector_blob.write (0, data.data (), data.size ());

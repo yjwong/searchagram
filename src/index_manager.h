@@ -21,6 +21,8 @@
 #define SEARCHAGRAM_INDEX_MANAGER_H_
 
 #include <string>
+#include <fstream>
+
 #include "boost/thread/mutex.hpp"
 #include "opencv2/opencv.hpp"
 
@@ -55,12 +57,15 @@ namespace SearchAGram {
       "searchagram.index_manager.backends.sqlite3.synchronous";
     const std::string CONFIG_BACKEND_SQLITE3_JOURNAL_MODE_KEY =
       "searchagram.index_manager.backends.sqlite3.journal_mode";
+    const std::string CONFIG_VECTOR_STORAGE_DIR_KEY =
+      "searchagram.index_manager.vector_storage.dir";
     const std::string CONFIG_FLANN_INDEX_FILE_KEY = 
       "searchagram.index_manager.flann_index.file";
 
     std::string backend_;
     soci::session session_;
     boost::mutex lock_;
+    std::fstream vector_storage_;
 
     IndexManager ();
     ~IndexManager ();

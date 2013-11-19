@@ -59,7 +59,7 @@
     <index_manager>
         <!-- TODO: Not implemented yet -->
         <backend>sqlite3</backend>
-        <purge>true</purge>
+        <purge>false</purge>
 
         <backends>
             <sqlite3>
@@ -68,6 +68,10 @@
                 <journal_mode>MEMORY</journal_mode>
             </sqlite3>
         </backends>
+
+        <vector_storage>
+            <dir>../data/searchagram.vectors</dir>
+        </vector_storage>
 
         <flann_index>
             <file>../data/searchagram.flann</file>
