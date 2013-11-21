@@ -109,7 +109,7 @@ namespace SearchAGram {
           } else if (action == "get_filters") {
             handle_get_filters_ (root, response);
            
-          } else if (action == "get_hashtags") {
+          } else if (action == "autocomplete_hashtags") {
             handle_autocomplete_hashtags_ (root, response);
 
           } else if (action == "autocomplete_users") {
@@ -368,7 +368,7 @@ namespace SearchAGram {
     query = query + ":comments AND ";
     query = query + "`images`.`id` = `tags`.`image_id` AND ";
     query = query + "`images`.`id` = `source_images`.`image_id` AND ";
-    query = query + "`source_images`.`name` = 'thumbnail' ";
+    query = query + "`source_images`.`name` = 'standard_resolution' ";
 
     // AND clause for hashtags.
     if (hashtags.size () > 0) {
@@ -454,6 +454,7 @@ namespace SearchAGram {
         IndexManager& manager = IndexManager::getInstance ();
         cv::flann::Index index = manager.loadFlannIndex ();
 
+
         response["status"] = -1;
         response["description"] = "not implemented yet";
 
@@ -517,7 +518,7 @@ namespace SearchAGram {
         std::string tag;
 
         soci::statement stmt = (session.prepare <<
-            "SELECT `tag` FROM `tags` WHERE `tag` LIKE :tag LIMIT 0," +
+            "SELECT DISTINCT `tag` FROM `tags` WHERE `tag` LIKE :tag LIMIT 0," +
             boost::lexical_cast<std::string> (max_entries), soci::use (query),
             soci::into (tag));
         stmt.execute ();

@@ -61,4 +61,21 @@
   margin-right: 8px;
 }
 
+.placeholder {
+  background-image: url(../assets/frame.jpg);
+  background-repeat: no-repeat;
+  background-size: 100%;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  padding: 14px 13px;
+}
+.placeholder p {
+  margin-top: 17px;
+  margin-bottom: 0px;
+  font-size: 15px;
+}
+.placeholder img {
+  max-width: 100%;
+  border: solid 1px rgba(0, 0, 0, 0.3);
+}
+
 /* vim: set ts=2 sw=2 et: */

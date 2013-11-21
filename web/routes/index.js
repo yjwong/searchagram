@@ -86,7 +86,7 @@ exports.autocomplete_tags = function (req, res) {
 
   socket.connect (config.backend.port, function () {
     var str = JSON.stringify ({
-      "action": "autocomplete_tags",
+      "action": "autocomplete_hashtags",
       "query": req.query.query
     });
 

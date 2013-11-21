@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Search-a-gram Results</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="css/searchagram.css" rel="stylesheet">
+    
+    <link href='http://fonts.googleapis.com/css?family=Roboto:300' rel='stylesheet' type='text/css'>
+    
+    <script src="js/jquery-1.10.2.min.js"></script>
+    <script src="js/jquery.scrollTo.min.js"></script>
+    <script src="js/jquery.localScroll.min.js"></script>
+    <script src="js/adjust-height.js"></script>
+    <script src="js/advanced-search.js"></script>
+    <script src="js/holder.js"></script>
+    <script src="js/results.js"></script>
+
+  </head>
+
+  <body style="padding-top: 50px;">
+    
+    <!-- Top fixed navbar -->
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <!-- The hamburger button for the collapsed nav -->
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <!-- TODO: Replace this with the logo -->
+          <a class="navbar-brand" href="index.html">Search-a-gram</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="index.html#search">Search</a></li>
+            <li><a href="index.html#about">About</a></li>
+            <li><a href="index.html#vote">Vote</a></li>
+          </ul>
+        </div><!--/.navbar-collapse -->
+      </div><!-- /container -->
+    </div>
+
+    <!-- Results -->
+    <div class="jumbotron" style="background-color: #cfd0e5;">
+      <div class="container" style="padding-left: 60px; padding-right: 60px; text-align: center; min-height: 200px;">
+
+        <p style="margin-bottom: 30px;" class="no-results-found">
+          Sorry, no results could be found for your query.
+        </p>
+
+        <h1 style="margin-top: 0px;" class="results-found">Results for:</h1>
+        <p style="margin-bottom: 30px;" class="results-found">
+          <strong>Images</strong> uploaded by <strong id="found-username">username</strong> with the hashtags <strong id="found-hashtags">#hashtag1, #hashtag2</strong> with the filter <strong id="found-filter">none</strong><!--, posted <strong id="found-date">before date</strong> having <strong id="found-likes">more than number</strong> likes and <strong id="found-comments">more than number</strong> comments.-->
+        </p>
+        
+        <!-- Row to duplicate -->
+        <div id="results">
+          <div class="col-sm-3" style="min-height: 275px;">
+            <div class="placeholder">
+              <img src="assets/placeholder.jpg" />
+              <p>
+                <span class="glyphicon glyphicon-heart"></span> FILL UP
+                <span class="glyphicon glyphicon-comment" style="margin-left: 20px;"></span> FILL UP
+              </p>
+            </div>
+          </div>
+          <div class="col-sm-3" style="min-height: 275px;">
+            <div class="placeholder">
+              <img src="assets/placeholder.jpg" />
+              <p>
+                <span class="glyphicon glyphicon-heart"></span> FILL UP
+                <span class="glyphicon glyphicon-comment" style="margin-left: 20px;"></span> FILL UP
+              </p>
+            </div>
+          </div>
+          <div class="col-sm-3" style="min-height: 275px;">
+            <div class="placeholder">
+              <img src="assets/placeholder.jpg" />
+              <p>
+                <span class="glyphicon glyphicon-heart"></span> FILL UP
+                <span class="glyphicon glyphicon-comment" style="margin-left: 20px;"></span> FILL UP
+              </p>
+            </div>
+          </div>      
+          <div class="col-sm-3" style="min-height: 275px;">
+            <div class="placeholder">
+              <img src="assets/placeholder.jpg" />
+              <p>
+                <span class="glyphicon glyphicon-heart"></span> FILL UP
+                <span class="glyphicon glyphicon-comment" style="margin-left: 20px;"></span> FILL UP
+              </p>
+            </div>
+          </div>
+          <div class="col-sm-3" style="min-height: 275px;">
+            <div class="placeholder">
+              <img src="assets/placeholder.jpg" />
+              <p>
+                <span class="glyphicon glyphicon-heart"></span> FILL UP
+                <span class="glyphicon glyphicon-comment" style="margin-left: 20px;"></span> FILL UP
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /container -->
+    </div>
+
+    <!-- Vote on every page cos we're awesome like that. -->
+    <div id="vote" style="background-image: url('assets/bottom.jpg'); background-size: 100%;">
+      <div class="jumbotron">
+        <div class="container">
+          <h1 style="margin-top: 5px;">Like Search-a-gram?</h1>
+          <h2>Give us a thumbs up by voting for us!</h2>
+          <h4 style="margin-top: 20px;">Our project ID is "3246-08: Advanced Search Functions on Instagram".</h4>
+
+          <div style="text-align: center;">
+            <a href="https://docs.google.com/forms/d/1I4QxMBs8dYjeHpFCDgvcKWF0R-xePPsjQk5P_3QdKbM/viewform"><button class="btn btn-primary" style="padding: 20px 50px; margin-top: 30px; font-size: 30px">Vote</button></a>
+          </div>
+        </div><!-- /container -->
+      </div>
+      
+        <footer>
+          <div class="container">
+            <div class="col-sm-3" style="margin-top: 13px;">
+              <p>&copy; Search-a-gram 2013</p>
+            </div>
+          </div><!-- /container -->
+        </footer>
+    </div>
+
+  </body>
+</html>

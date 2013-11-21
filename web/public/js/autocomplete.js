@@ -49,6 +49,54 @@ jQuery (document).ready (function () {
   });
 
   // Provides autocompletion suggestions for users.
+  jQuery ('#hashtag').bind ('input', function (input_event) {
+    var hashtag = jQuery (this).val ();
+    var hashtag_field = this;
+
+    jQuery.ajax ('/autocomplete/tags', {
+      error: function (jqXHR, textStatus, errorThrown) {
+        // TODO: show some error dialog.
+      },
+      success: function (data, textStatus, jqXHR) {
+        if (!data.results || data.results.length == 0) {
+          jQuery ('#hashtags-completion-list').hide ();
+          return;
+        }
+        
+        // We haz data. Populate the autocompletion list.
+        var results = data.results;
+        jQuery ('#hashtags-completion-list').empty ();
+        for (var i = 0; i < results.length; i++) {
+          var list_item = jQuery (document.createElement ('li'))
+            .append (jQuery (document.createElement ('a'))
+              .attr ('href', '#')
+              .append (jQuery (document.createElement ('span'))
+                .append (results[i].tag)
+                .addClass ('tag'))
+              .click (function (click_event) {
+                var tag = jQuery (this).find ('.tag').html ();
+                jQuery (hashtag_field).val (tag);
+                jQuery ('#hashtags-completion-list').hide ();
+                click_event.preventDefault ();
+              }));
+          jQuery ('#hashtags-completion-list').append (list_item);
+        }
+        
+        // Set the position of the list.
+        var position = jQuery (hashtag_field).offset ();
+        jQuery ('#hashtags-completion').css ({
+          'position': 'absolute',
+          'top': position.top + jQuery (hashtag_field).height () + 15 + 'px',
+          'left': position.left + 'px'
+        });
+
+        jQuery ('#hashtags-completion-list').show ();
+      },
+      data: { "query": hashtag }
+    });
+  });
+
+  // Provides autocompletion suggestions for users.
   jQuery ('#user').bind ('input', function (input_event) {
     var user = jQuery (this).val ();
     var user_field = this;
@@ -108,10 +156,12 @@ jQuery (document).ready (function () {
 
   jQuery (document).click (function (click_event) {
     jQuery ('#users-completion-list').hide ();
+    jQuery ('#hashtags-completion-list').hide ();
   });
 
   jQuery (window).resize (function () {
     jQuery ('#users-completion-list').hide ();
+    jQuery ('#hashtags-completion-list').hide ();
   });
 });
 
