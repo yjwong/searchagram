@@ -49,7 +49,7 @@ if ('development' == config.env) {
 var routes = require ('./routes');
 
 app.get ('/search', routes.search);
-app.get ('/search', routes.image_search);
+app.post ('/image_search', routes.image_search);
 
 app.get ('/get_filters', routes.get_filters);
 app.get ('/autocomplete/tags', routes.autocomplete_tags);

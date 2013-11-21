@@ -123,7 +123,7 @@ namespace SearchAGram {
   }
 
   void Indexer::buildIndex_ () {
-    BOOST_LOG_TRIVIAL (info) << "indexing stage 1: analyzing images";
+    BOOST_LOG_TRIVIAL (info) << "analyzing images";
 
     // Create a thread pool to do the work.
     asio::io_service io_service;
@@ -139,7 +139,9 @@ namespace SearchAGram {
     InstagramImage image;
     while (*data_source >> image) {
       io_service.post ([image, data_source] {
-        BOOST_LOG_TRIVIAL (info) << "processing " << 
+        static int count = 0;
+
+        BOOST_LOG_TRIVIAL (info) << "[" << count << "] processing " << 
           data_source->getMatLocation (image);
 
         cv::Mat image_mat = data_source->getMat (image);
@@ -158,41 +160,16 @@ namespace SearchAGram {
         SurfVector surf (image_mat);
         surf.setMinHessian (1200);
         cv::Mat feature_vector = surf.detect ();
-        std::cout << feature_vector.rows << std::endl;
-        for (int i = 0; i < feature_vector.rows; i++) {
-          manager.createVector ("surf", image, feature_vector.row (i));
-        }
+        manager.createVector ("surf", image, feature_vector);
+
+        count++;
       });
     }
   
     // Wait for all work to be done. 
     work.reset ();
     threads.join_all ();
-    BOOST_LOG_TRIVIAL (info) << "indexing stage 1 complete";
-  }
-
-  void Indexer::buildFlannIndex_ () {
-    BOOST_LOG_TRIVIAL (info) << "indexing stage 2: building FLANN index";
-
-    // Obtain the SURF vectors.
-    IndexManager& manager = IndexManager::getInstance ();
-    std::vector<cv::Mat> surf_vectors = manager.getVectorsWithName ("surf");
-
-    // Convert the SURF vectors into a multi-dimensional Mat.
-    cv::Mat surf_vectors_mat (64, surf_vectors.size (), CV_8UC1);
-    for (std::vector<cv::Mat>::size_type i = 0; i < surf_vectors.size (); i++) {
-      surf_vectors_mat.col (i) = surf_vectors[i];
-    }
-
-    // Initialize the FLANN index.
-    cv::flann::Index flann_index (
-        surf_vectors_mat,
-        cv::flann::LshIndexParams (20, 10, 2),
-        cvflann::FLANN_DIST_EUCLIDEAN
-    );
-
-    manager.storeFlannIndex (flann_index);
-    BOOST_LOG_TRIVIAL (info) << "indexing stage 2 complete";
+    BOOST_LOG_TRIVIAL (info) << "analysis complete";
   }
 
   int Indexer::main (int argc, char* argv[]) {
@@ -223,7 +200,6 @@ namespace SearchAGram {
     // Build the index.
     try {
       buildIndex_ ();
-      buildFlannIndex_ ();
 
     } catch (boost::property_tree::ptree_bad_path& e) {
       BOOST_LOG_TRIVIAL (error) << "unable to set up data source: " <<

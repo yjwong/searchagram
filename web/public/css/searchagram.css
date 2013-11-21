@@ -61,6 +61,11 @@
   margin-right: 8px;
 }
 
+/* Hide the image upload box */
+#image-upload {
+  display: none;
+}
+
 .placeholder {
   background-image: url(../assets/frame.jpg);
   background-repeat: no-repeat;

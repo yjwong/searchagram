@@ -19,6 +19,7 @@
     <script src="js/advanced-search.js"></script>
     <script src="js/holder.js"></script>
     <script src="js/autocomplete.js"></script>
+    <script src="js/image-upload.js"></script>
 
   </head>
 
@@ -160,16 +161,18 @@
         </form> <!-- End of text based search -->
         
         <!-- Image based search -->
-        <form class="form-horizontal col-sm-6" role="form" style="border-left: solid 3px black; padding-left: 5px; margin-top: -13px;">
+        <form class="form-horizontal col-sm-6" role="form" style="border-left: solid 3px black; padding-left: 5px; margin-top: -13px;" method="POST" action="/image_search" id="image-search-form" enctype="multipart/form-data">
           
           <!-- Find images/videos -->
           <div class="form-group" style="margin-left: 15px; padding-right: 15px;">
             <label for="image" class="col-sm-11 control-label" style="text-align: left; margin-left: -15px;">Find an image which looks like this:</label>
             <div style="display: table; width: 100%; box-sizing: border-box; cursor: pointer;">
               <div id="image" class="upload-box" style="display: table-cell; width: 100%;">
-                Drag and drop an image here<br>or click to upload
+                Drag and drop an image here<br />or click to upload
               </div>
             </div>
+
+            <input type="file" id="image-upload" accept="image/png, image/jpeg" name="image" />
           </div>
         </form>
         

@@ -27,6 +27,7 @@
 #include "boost/log/trivial.hpp"
 
 #include "config.h"
+#include "index_manager.h"
 #include "matcher_service.h"
 #include "matcher.h"
 
@@ -138,6 +139,11 @@ namespace SearchAGram {
         e.what ();
       return EXIT_CONFIG_PARSE_ERROR;
     }
+
+    // Preload the FLANN index.
+    BOOST_LOG_TRIVIAL (info) << "preloading FLANN index...";
+    IndexManager& manager = IndexManager::getInstance ();
+    manager.loadFlannIndex ();
 
     // Start the matcher service.
     asio::io_service io_service;

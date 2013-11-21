@@ -37,8 +37,12 @@ namespace SearchAGram {
 
     soci::session& obtainSession ();
     void releaseSession ();
+
+    soci::session& obtainVectorsSession ();
+    void releaseVectorsSession ();
     
-    cv::flann::Index loadFlannIndex ();
+    void loadFlannIndex ();
+    std::shared_ptr<cv::FlannBasedMatcher> obtainFlannMatcher ();
     void storeFlannIndex (const cv::flann::Index& index);
 
     void createInstagramUser (const InstagramUser& user);
@@ -57,15 +61,20 @@ namespace SearchAGram {
       "searchagram.index_manager.backends.sqlite3.synchronous";
     const std::string CONFIG_BACKEND_SQLITE3_JOURNAL_MODE_KEY =
       "searchagram.index_manager.backends.sqlite3.journal_mode";
-    const std::string CONFIG_VECTOR_STORAGE_DIR_KEY =
-      "searchagram.index_manager.vector_storage.dir";
+    const std::string CONFIG_BACKEND_SQLITE3_VECTORS_KEY =
+      "searchagram.index_manager.backends.sqlite3.vectors";
     const std::string CONFIG_FLANN_INDEX_FILE_KEY = 
       "searchagram.index_manager.flann_index.file";
 
     std::string backend_;
     soci::session session_;
     boost::mutex lock_;
-    std::fstream vector_storage_;
+
+    soci::session vectors_session_;
+    boost::mutex vectors_lock_;
+
+    bool flann_index_loaded_;
+    std::shared_ptr<cv::FlannBasedMatcher> flann_matcher_;
 
     IndexManager ();
     ~IndexManager ();
@@ -74,7 +83,10 @@ namespace SearchAGram {
     IndexManager& operator= (const IndexManager&) = delete;
 
     void initBackend_ ();
-    void createTables_();
+    void initVectorsBackend_ ();
+
+    void createTables_ ();
+    void createVectorsTables_ ();
   };
 
 }

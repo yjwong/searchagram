@@ -30,7 +30,8 @@ add_executable (matcher
     matcher_service.cxx
     matcher_service_connection.cxx
     config.cxx
-    index_manager.cxx)
+    index_manager.cxx
+    analysis/surf_vector.cxx)
 add_dependencies (matcher soci)
 add_dependencies (matcher sqlite)
 add_dependencies (matcher b64)

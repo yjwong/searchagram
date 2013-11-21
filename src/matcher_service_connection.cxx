@@ -19,6 +19,7 @@
 
 #include <sstream>
 #include <fstream>
+#include <unordered_set>
 
 #include "boost/bind.hpp"
 #include "boost/filesystem.hpp"
@@ -30,6 +31,7 @@
 #include "b64/decode.h"
 #include "b64/encode.h"
 
+#include "analysis/surf_vector.h"
 #include "index_manager.h"
 #include "matcher.h"
 #include "matcher_service_connection.h"
@@ -146,11 +148,11 @@ namespace SearchAGram {
     std::string type = "all";
     std::string username = "";
     std::vector<std::string> hashtags;
-    std::string filter = "Normal";
+    std::string filter = "";
     std::string date_interval = "lt";
     int date = std::time (NULL);
     std::string likes_interval = "gt";
-    int likes = -1;
+    int likes = 0;
     std::string comments_interval = "gt";
     int comments = -1;
 
@@ -221,7 +223,7 @@ namespace SearchAGram {
       }
     }
 
-    if (root.isMember ("date") && root["date"].size () > 0) {
+    if (root.isMember ("date")) {
       if (root["date"].isInt ()) {
         date = root["date"].asInt ();
       } else {
@@ -247,7 +249,7 @@ namespace SearchAGram {
       }
     }
 
-    if (root.isMember ("likes") && root["likes"].size () > 0) {
+    if (root.isMember ("likes")) {
       if (root["likes"].isInt ()) {
         likes = root["likes"].asInt ();
       } else {
@@ -273,7 +275,7 @@ namespace SearchAGram {
       }
     }
 
-    if (root.isMember ("comments") && root["comments"].size () > 0) {
+    if (root.isMember ("comments")) {
       if (root["comments"].isInt ()) {
         comments = root["comments"].asInt ();
       } else {
@@ -305,8 +307,12 @@ namespace SearchAGram {
     // Build the query.
     std::string query = "SELECT DISTINCT `images`.`id`, `images`.`link`, "
       "`source_images`.`url`, `images`.`caption`, `images`.`likes_count`, "
-      "`images`.`comments_count` FROM `images`, `tags`, `source_images` "
-      "WHERE ";
+      "`images`.`comments_count` FROM `images`, `source_images` ";
+    if (hashtags.size () > 0) {
+      query = query + ", `tags` ";
+    }
+
+    query = query + "WHERE ";
     if (type != "all") {
       query = query + "`type` = :type AND ";
     } else {
@@ -366,7 +372,9 @@ namespace SearchAGram {
       query = query + "= ";
     }
     query = query + ":comments AND ";
-    query = query + "`images`.`id` = `tags`.`image_id` AND ";
+    if (hashtags.size () > 0) {
+      query = query + "`images`.`id` = `tags`.`image_id` AND ";
+    }
     query = query + "`images`.`id` = `source_images`.`image_id` AND ";
     query = query + "`source_images`.`name` = 'standard_resolution' ";
 
@@ -444,24 +452,84 @@ namespace SearchAGram {
       std::vector<char> query = base64_to_vec (root["query"].asString ());
 
       // Perform image analysis.
-      cv::Mat image = cv::imdecode (cv::Mat (query), CV_LOAD_IMAGE_COLOR);
-      if (image.data == NULL) {
-        response["status"] = 33;
-        response["description"] = "query is not an image";
+      try {
+        cv::Mat image = cv::imdecode (cv::Mat (query), CV_LOAD_IMAGE_COLOR);
+        if (image.data == NULL) {
+          response["status"] = 33;
+          response["description"] = "query is not an image";
 
-      } else {
-        // Load our FLANN index.
-        IndexManager& manager = IndexManager::getInstance ();
-        cv::flann::Index index = manager.loadFlannIndex ();
+        } else {
+          // Load our FLANN index.
+          IndexManager& manager = IndexManager::getInstance ();
+          std::shared_ptr<cv::FlannBasedMatcher> matcher = manager.obtainFlannMatcher ();
 
+          // Perform SURF analysis on query image.
+          BOOST_LOG_TRIVIAL (info) << "received query image, performing analysis";
+          SurfVector surf_vector (image);
+          surf_vector.setMinHessian (1200);
+          cv::Mat feature_vectors = surf_vector.detect ();
 
-        response["status"] = -1;
-        response["description"] = "not implemented yet";
+          // Perform matching.
+          BOOST_LOG_TRIVIAL (info) << "performing matching...";
+          std::vector<std::vector<cv::DMatch>> matches;
+          matcher->knnMatch (feature_vectors, matches, 2);
+          BOOST_LOG_TRIVIAL (info) << "matching complete.";
 
-        // TODO: Implement search.
-        //response["status"] = 0;
-        //response["results"] = results;
+          // Obtain the matched image.
+          float nndr_ratio = 0;
+          Json::Value results;
+          std::unordered_set<int> duplicate_checker;
+          soci::session& vectors_session = manager.obtainVectorsSession ();
+          soci::session& session = manager.obtainSession ();
+
+          for (std::vector<std::vector<cv::DMatch>>::size_type i = 0;
+              i < matches.size (); i++) {
+            std::vector<cv::DMatch> match = matches[i];
+
+            // Check for duplicates.
+            if (duplicate_checker.find (match[0].imgIdx) !=
+                duplicate_checker.end ()) {
+              continue;
+            }
+
+            // Use Nearest Neighbour Distance Ratio.
+            if (match[0].distance <= nndr_ratio * match[1].distance) {
+              std::string image_id;
+              vectors_session << "SELECT `image_id` FROM `vectors` WHERE `rowid`"
+                " = :rowid", soci::use (match[0].imgIdx + 1),
+                soci::into (image_id);
+             
+              std::string link;
+              session << "SELECT `link` FROM `images` WHERE `id` = :id", 
+                soci::use (image_id), soci::into (link);
+
+              Json::Value result;
+              result["id"] = image_id;
+              result["link"] = link;
+              result["match_imgidx"] = match[0].imgIdx;
+              result["match_distance"] = match[0].distance;
+
+              results.append (result);
+              duplicate_checker.insert (match[0].imgIdx);
+            }
+          }
+
+          manager.releaseSession ();
+          manager.releaseVectorsSession ();
+
+          response["status"] = 0;
+          response["results"] = results;
+        }
+
+      } catch (cv::Exception& e) {
+        std::string except_message = "OpenCV exception: ";
+        except_message.append (e.what ());
+
+        response["status"] = 34;
+        response["results"] = except_message;
+        BOOST_LOG_TRIVIAL (error) << except_message;
       }
+
     }
   }
 

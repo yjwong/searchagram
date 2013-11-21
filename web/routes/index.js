@@ -162,19 +162,36 @@ exports.search = function (req, res) {
         return value;
       });
 
-    var str = JSON.stringify ({
+    var query = {
       "action": "search",
       "type": req.query.type,
       "username": req.query.username,
       "hashtags": hashtags,
       "filter": req.query.filter,
       "date_interval": req.query.date_interval,
-      "date": req.query.date,
       "likes_interval": req.query.likes_interval,
-      "likes": req.query.likes,
-      "comments_interval": req.query.comments_interval,
-      "comments": req.query.comments
-    });
+      "comments_interval": req.query.comments_interval
+    };
+
+    if (req.query.likes && req.query.likes.length > 0) {
+      query.likes = parseInt (req.query.likes);
+    } else {
+      query.likes = -1;
+    }
+
+    if (req.query.comments && req.query.comments.length > 0) {
+      query.comments = parseInt (req.query.comments);
+    } else {
+      query.comments = -1;
+    }
+
+    if (req.query.date.length > 0) {
+      query.date = Math.floor (new Date (req.query.date).getTime () / 1000);
+    } else {
+      query.date = Math.floor (new Date ().getTime () / 1000);
+    }
+
+    var str = JSON.stringify (query);
 
     socket.write (str);
     socket.write ('\n');
@@ -204,7 +221,7 @@ exports.image_search = function (req, res) {
 
   var startTime = process.hrtime ();
   socket.connect (9192, function () {
-    var str = JSON.stringify ({"action": "search", "query": file});
+    var str = JSON.stringify ({"action": "image_search", "query": file});
     socket.write (str);
     socket.write ('\n');
 
@@ -221,15 +238,9 @@ exports.image_search = function (req, res) {
       var data = results.toString ();
       data = JSON.parse (data);
       console.log (data);
-
-      data.results = data.results.slice (0, 20);
+      res.json (data);
 
       var elapsed = process.hrtime (startTime);
-      res.render ('results', {
-        title: 'Search Results',
-        results: data.results,
-        elapsed: elapsed
-      });
     });
   });
 };

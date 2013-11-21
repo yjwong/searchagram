@@ -22,15 +22,18 @@
 
 #include "soci-sqlite3.h"
 #include "config.h"
+#include "analysis/surf_vector.h"
 #include "index_manager.h"
 
 namespace filesystem = boost::filesystem;
 
 namespace SearchAGram {
 
-  IndexManager::IndexManager () {
+  IndexManager::IndexManager () :
+      flann_index_loaded_ (false) {
     backend_ = Config::get<std::string> (CONFIG_BACKEND_KEY);
     initBackend_ ();
+    initVectorsBackend_ ();
   }
 
   IndexManager::~IndexManager () {
@@ -68,28 +71,71 @@ namespace SearchAGram {
     std::string journal_mode = Config::get<std::string> (
         CONFIG_BACKEND_SQLITE3_JOURNAL_MODE_KEY);
     session_ << "PRAGMA journal_mode = " << journal_mode;
-
-    // Open the vector storage too.
-    std::string vector_storage_dir = 
-        Config::get<std::string> (CONFIG_VECTOR_STORAGE_DIR_KEY);
-    if (!filesystem::exists (vector_storage_dir)) {
-      if (!filesystem::create_directory (vector_storage_dir)) {
-        throw std::runtime_error ("unable to create vector storage directory");
-      }
-    }
   }
 
-  cv::flann::Index IndexManager::loadFlannIndex () {
-    std::string flann_file = Config::get<std::string> (
-        CONFIG_FLANN_INDEX_FILE_KEY);
-    if (filesystem::exists (flann_file)) {
-      return cv::flann::Index (
-          cv::Mat (),
-          cv::flann::SavedIndexParams (flann_file));
+  void IndexManager::initVectorsBackend_ () {
+    // Obtain database filename.
+    std::string filename = Config::get<std::string> (
+        CONFIG_BACKEND_SQLITE3_VECTORS_KEY);
 
-    } else {
-      throw std::runtime_error ("FLANN index does not exist");
+    // Check if we should purge the old database.
+    bool purge = Config::get<bool> (CONFIG_PURGE_KEY);
+    if (purge) {
+      BOOST_LOG_TRIVIAL (info) << "purging old database file...";
+      filesystem::remove (filename);
     }
+    
+    // Create a new SQLite 3 database instance.
+    vectors_session_.open (soci::sqlite3, filename);
+
+    // Create tables if they don't exist.
+    createVectorsTables_ ();
+
+    // We want high performance.
+    std::string synchronous = Config::get<std::string> (
+        CONFIG_BACKEND_SQLITE3_SYNCHRONOUS_KEY);
+    vectors_session_ << "PRAGMA synchronous = " << synchronous;
+
+    std::string journal_mode = Config::get<std::string> (
+        CONFIG_BACKEND_SQLITE3_JOURNAL_MODE_KEY);
+    vectors_session_ << "PRAGMA journal_mode = " << journal_mode;
+  }
+
+  void IndexManager::loadFlannIndex () {
+    cv::Ptr<cv::flann::IndexParams> index_params = 
+      new cv::flann::KDTreeIndexParams (10);
+    flann_matcher_ = std::shared_ptr<cv::FlannBasedMatcher> (
+       new cv::FlannBasedMatcher (index_params));
+
+    // TODO: This is hardcoded but we can do better.
+    std::vector<cv::Mat> surf_vectors = getVectorsWithName ("surf");
+    flann_matcher_->add (surf_vectors);
+    flann_matcher_->train ();
+
+    /*
+    cv::Mat query = cv::imread ("/home/yjwong/Pictures/Screenshot from 2013-01-15 15:07:59.png");
+    SurfVector surf_vector (query);
+    cv::Mat descriptors = surf_vector.detect ();
+
+    std::vector<std::vector<cv::DMatch>> matches;
+    flann_matcher_.knnMatch (descriptors, matches, 20);
+    for (int i = 0; i < 20; i++) {
+      std::cout << matches[0][i].imgIdx << std::endl;
+    }
+    */
+
+    // Show some stats!
+    BOOST_LOG_TRIVIAL (info) << "trained descriptors count: " <<
+      flann_matcher_->getTrainDescriptors ().size ();
+    flann_index_loaded_ = true;
+  }
+
+  std::shared_ptr<cv::FlannBasedMatcher> IndexManager::obtainFlannMatcher () {
+    if (!flann_index_loaded_) {
+      loadFlannIndex ();
+    }
+
+    return flann_matcher_;
   }
 
   void IndexManager::storeFlannIndex (const cv::flann::Index& index) {
@@ -105,6 +151,15 @@ namespace SearchAGram {
 
   void IndexManager::releaseSession () {
     lock_.unlock ();
+  }
+
+  soci::session& IndexManager::obtainVectorsSession () {
+    vectors_lock_.lock ();
+    return vectors_session_;
+  }
+
+  void IndexManager::releaseVectorsSession () {
+    vectors_lock_.unlock ();
   }
 
   void IndexManager::createInstagramUser (const InstagramUser& user) {
@@ -144,22 +199,7 @@ namespace SearchAGram {
 
   void IndexManager::createVector (const std::string& name,
       const InstagramImage& image, const cv::Mat& vector) {
-    lock_.lock ();
-
-    /*
-    // Create the vector storage.
-    std::string vector_storage_dir = 
-        Config::get<std::string> (CONFIG_VECTOR_STORAGE_DIR_KEY);
-    filesystem::path vector_storage_path (vector_storage_dir);
-    vector_storage_path /= (name + ".vector");
-    std::ofstream vector_storage (vector_storage_path.string (),
-        std::ios::app | std::ios::binary);
-
-    // Check if open was successful.
-    if (vector_storage.fail ()) {
-      throw std::runtime_error ("error opening vector storage");
-    }
-    */
+    vectors_lock_.lock ();
 
     // Convert the vector to binary.
     std::vector<char> data (
@@ -167,16 +207,14 @@ namespace SearchAGram {
         vector.data + (vector.elemSize () * vector.rows * vector.cols)
     );
 
-    //vector_storage.write (&data[0], data.size ());
-    
     // Prepare the blob for insertion.
     soci::blob vector_blob (session_);
     vector_blob.write (0, data.data (), data.size ());
 
     // Create the vector in SQL.
-    session_ << "INSERT OR IGNORE INTO `vectors` (`image_id`, `name`, `rows`, "
-      "`cols`, `elem_size`, `elem_type`, `data`) values (:image_id, :name, "
-      ":rows, :cols, :elem_size, :elem_type, :data)",
+    vectors_session_ << "INSERT OR IGNORE INTO `vectors` (`image_id`, `name`, "
+      "`rows`, `cols`, `elem_size`, `elem_type`, `data`) values (:image_id, "
+      ":name, :rows, :cols, :elem_size, :elem_type, :data)",
       soci::use (image.id, "image_id"),
       soci::use (name, "name"),
       soci::use (vector.rows, "rows"),
@@ -185,11 +223,11 @@ namespace SearchAGram {
       soci::use (vector.type (), "elem_type"),
       soci::use (vector_blob, "data");
     
-    lock_.unlock ();  
+    vectors_lock_.unlock ();  
   }
 
   std::vector<cv::Mat> IndexManager::getVectorsWithName (const std::string& name) {
-    lock_.lock ();
+    vectors_lock_.lock ();
 
     // Retrieve the vectors.
     std::vector<cv::Mat> results;
@@ -199,9 +237,9 @@ namespace SearchAGram {
     int cols;
     int elem_size;
     int elem_type;
-    soci::blob vector_blob (session_);
+    soci::blob vector_blob (vectors_session_);
 
-    soci::statement stmt = (session_.prepare << 
+    soci::statement stmt = (vectors_session_.prepare << 
       "SELECT `image_id`, `rows`, `cols`, `elem_size`, `elem_type`, "
       "`data` FROM `vectors` WHERE `name` = :name",
       soci::use (name, "name"), soci::into (image_id), soci::into (rows),
@@ -217,14 +255,15 @@ namespace SearchAGram {
     }
 
     // We don't need the session anymore.
-    lock_.unlock ();
+    vectors_lock_.unlock ();
 
     return results;
   }
 
   void IndexManager::createTables_ () {
-    // Create the users table.
     soci::transaction transaction (session_);
+
+    // Create the users table.
     session_ << "CREATE TABLE IF NOT EXISTS `users` ("
       "`id` VARCHAR(128) NOT NULL ,"
       "`username` VARCHAR(64) NOT NULL ,"
@@ -290,24 +329,26 @@ namespace SearchAGram {
     session_ << "CREATE INDEX IF NOT EXISTS `image_id` on `source_images` "
       "(`image_id` ASC)";
 
+    // Commit the changes.
+    transaction.commit ();
+  }
+  
+  void IndexManager::createVectorsTables_ () {
+    soci::transaction transaction (vectors_session_);
+
     // Create the feature vectors table.
-    session_ << "CREATE TABLE IF NOT EXISTS `vectors` ("
+    vectors_session_ << "CREATE TABLE IF NOT EXISTS `vectors` ("
       "`image_id` VARCHAR(128) NOT NULL ,"
       "`name` VARCHAR(64) NOT NULL ,"
       "`rows` INT NOT NULL ,"
       "`cols` INT NOT NULL ,"
       "`elem_size` INT NOT NULL ,"
       "`elem_type` INT NOT NULL ,"
-      "`data` BLOB NOT NULL,"
-      "CONSTRAINT `fk_vectors_images`"
-      "  FOREIGN KEY (`image_id` )"
-      "  REFERENCES `images` (`id` )"
-      "  ON DELETE NO ACTION "
-      "  ON UPDATE NO ACTION)";
+      "`data` BLOB NOT NULL)";
 
-    session_ << "CREATE INDEX IF NOT EXISTS `image_id` on `vectors` "
+    vectors_session_ << "CREATE INDEX IF NOT EXISTS `image_id` on `vectors` "
       "(`image_id` ASC)";
-    session_ << "CREATE INDEX IF NOT EXISTS `name` on `vectors` "
+    vectors_session_ << "CREATE INDEX IF NOT EXISTS `name` on `vectors` "
       "(`name` ASC)";
 
     // Commit the changes.

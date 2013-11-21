@@ -66,15 +66,18 @@
                 <file>../data/searchagram.db</file>
                 <synchronous>0</synchronous>
                 <journal_mode>MEMORY</journal_mode>
+
+                <!--
+                ; The vectors database.
+                ; This is necessarily non-synchronous and runs with
+                ; journal_mode MEMORY due to the intensive I/O operations.
+                -->
+                <vectors>../data/searchagram.vectors.db</vectors>
             </sqlite3>
         </backends>
 
-        <vector_storage>
-            <dir>../data/searchagram.vectors</dir>
-        </vector_storage>
-
         <flann_index>
-            <file>../data/searchagram.flann</file>
+            <file>../data/searchagram.flann.db</file>
         </flann_index>
     </index_manager>
 </searchagram>

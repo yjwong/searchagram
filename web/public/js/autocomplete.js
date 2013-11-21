@@ -33,6 +33,11 @@ jQuery (document).ready (function () {
 
       // Insert an empty element.
       jQuery ('#filter').empty ();
+      jQuery ('#filter').append (jQuery (document.createElement ('option'))
+        .attr ('value', '')
+        .attr ('selected', 'selected')
+        .append ("All"));
+
       var results = data.results;
       for (var i = 0; i < results.length; i++) {
         var result = results[i];
