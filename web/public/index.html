@@ -16,10 +16,9 @@
     <script src="js/jquery.scrollTo.min.js"></script>
     <script src="js/jquery.localScroll.min.js"></script>
     <script src="js/adjust-height.js"></script>
-    <script src="js/advanced-search.js"></script>
+    <script src="js/search.js"></script>
     <script src="js/holder.js"></script>
     <script src="js/autocomplete.js"></script>
-    <script src="js/image-upload.js"></script>
 
   </head>
 
@@ -36,25 +35,25 @@
             <span class="icon-bar"></span>
           </button>
           <!-- TODO: Replace this with the logo -->
-          <a class="navbar-brand" href="#search">Search-a-gram</a>
+          <a class="navbar-brand" href="#section-search" id="logo">Search-a-gram</a>
         </div>
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
-            <li class="active"><a href="#search">Search</a></li>
-            <li><a href="#about">About</a></li>
-            <li><a href="#vote">Vote</a></li>
+            <li class="active"><a href="#section-search">Search</a></li>
+            <li><a href="#section-about">About</a></li>
+            <li><a href="#section-vote">Vote</a></li>
           </ul>
         </div><!--/.navbar-collapse -->
       </div><!-- /container -->
     </div>
 
     <!-- Search -->
-    <div id="search" class="jumbotron" style="background-image: url('assets/wood-edited.jpg');">
+    <section id="section-search" class="jumbotron" style="background-image: url('assets/wood-edited.jpg');">
       <div class="container" style="display: table-cell; vertical-align: middle; padding-left: 60px; padding-right: 60px;">
         <h1 style="text-align: center; margin-bottom: 50px;">I want to...</h1>
         
         <!-- Text based search -->
-        <form class="form-horizontal col-sm-6" role="form" method="GET" action="/results.html">
+        <form class="form-horizontal col-sm-6" role="form" id="text-search">
           
           <!-- Find images/videos -->
           <div class="form-group">
@@ -167,7 +166,7 @@
           <div class="form-group" style="margin-left: 15px; padding-right: 15px;">
             <label for="image" class="col-sm-11 control-label" style="text-align: left; margin-left: -15px;">Find an image which looks like this:</label>
             <div style="display: table; width: 100%; box-sizing: border-box; cursor: pointer;">
-              <div id="image" class="upload-box" style="display: table-cell; width: 100%;">
+              <div id="image" class="dropbox" style="display: table-cell; width: 100%;">
                 Drag and drop an image here<br />or click to upload
               </div>
             </div>
@@ -177,11 +176,30 @@
         </form>
         
       </div><!-- /container -->
-    </div>
+    </section>
+
+    <!-- Results -->
+    <section class="jumbotron" style="background-color: #cfd0e5;" id="section-results">
+      <div class="container" style="padding-left: 60px; padding-right: 60px; text-align: center; min-height: 200px;">
+
+        <p style="margin-bottom: 30px;" class="no-results-found">
+          Sorry, no results could be found for your query.
+        </p>
+
+        <h1 style="margin-top: 0px;" class="results-found">Results for:</h1>
+        <p style="margin-bottom: 30px;" class="results-found">
+          <strong>Images</strong> uploaded by <strong id="found-username">username</strong> with the hashtags <strong id="found-hashtags">#hashtag1, #hashtag2</strong> with the filter <strong id="found-filter">none</strong><!--, posted <strong id="found-date">before date</strong> having <strong id="found-likes">more than number</strong> likes and <strong id="found-comments">more than number</strong> comments.-->
+        </p>
+        
+        <!-- Row to duplicate -->
+        <div id="results">
+
+        </div>
+      </div>
+    </section>
     
     <!-- About -->
-    <div id="about"></div>
-    <div class="jumbotron" style="background-image: url('assets/about.jpg'); background-size: 100%; color: white;">
+    <section class="jumbotron" id="section-about">
       <div class="container">
         <h1 style="text-align: center; margin-bottom: 50px;">About</h1>
                 <!-- About image -->
@@ -203,11 +221,10 @@
             
 
       </div><!-- /container -->
-    </div>
+    </section>
     
     <!-- Vote -->
-    <div id="vote"></div>
-    <div style="background-image: url('assets/bottom.jpg'); background-size: 100%;">
+    <section id="section-vote">
       <div class="jumbotron">
         <div class="container">
           <h1 style="margin-top: 5px;">Like Search-a-gram?</h1>

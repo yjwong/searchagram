@@ -1,6 +1,6 @@
 jQuery (document).ready (function () {
     var adjustHeight = function () {
-        jQuery ('#search').css (
+        jQuery ('section#section-search').css (
             'height', (jQuery (window).height () - 50) + 'px'
         );
     };
@@ -11,3 +11,4 @@ jQuery (document).ready (function () {
     // Adjust the height of the grey part when the window is resized.
     jQuery (window).resize (adjustHeight);
 });
+

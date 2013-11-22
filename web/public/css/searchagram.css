@@ -2,14 +2,34 @@
   padding-top: 0px;
   margin-top: -3px;
 }
-#search {
+
+section#section-search {
   background-color: #fbfbfb;
   padding-top: 10px;
   padding-bottom: 10px;
   display: table;
   width: 100%;
 }
-.upload-box {
+
+section#section-results {
+  display: none;
+}
+
+section#section-about {
+  background-image: url('../assets/about.jpg');
+  background-size: 100%;
+  color: white;
+}
+
+section#section-vote {
+ background-image: url('../assets/bottom.jpg');
+ background-size: 100%;
+}
+
+/**
+ * The search section.
+ */
+#section-search .dropbox {
   border-radius: 8px;
   border: dashed 3px #cccccc;
   background-color: #fbfbfb;
@@ -20,27 +40,69 @@
   vertical-align: middle;
   transition: 1s all;
 }
-.expanded-upload-box {
+
+#section-search .expanded-dropbox {
   height: 415px;
 }
-.advanced-search {
+
+#section-search .advanced-search {
   overflow: hidden;
   height: 0px;
   transition: 1s all;
 }
-.advanced-search-shown {
+
+#section-search .advanced-search-shown {
   height: 234px;
 }
-.about a {
+
+/* Hide the image upload box */
+#section-search #image-upload {
+  display: none;
+}
+
+/**
+ * The results section.
+ */
+
+#section-results .placeholder {
+  background-image: url(../assets/frame.jpg);
+  background-repeat: no-repeat;
+  background-size: 100%;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  padding: 14px 13px;
+}
+
+#section-results .placeholder p {
+  margin-top: 17px;
+  margin-bottom: 0px;
+  font-size: 15px;
+}
+
+#section-results .placeholder img {
+  max-width: 100%;
+  border: solid 1px rgba(0, 0, 0, 0.3);
+}
+
+#section-results.hidden {
+
+}
+
+/**
+ * The about section.
+ */
+#section-about .about a {
   color: #999999;
 }
-.about a:hover{
+
+#section-about .about a:hover{
   color: #cccccc;
 }
+
 .jumbotron h1, .jumbotron h2, .jumbotron h4 {
   font-family: 'Roboto', sans-serif;
   text-align: center;
 }
+
 .jumbotron {
   margin-bottom: 0px;
   background-color: transparent;
@@ -59,28 +121,6 @@
 #users-completion-list .username {
   margin-left: 8px;
   margin-right: 8px;
-}
-
-/* Hide the image upload box */
-#image-upload {
-  display: none;
-}
-
-.placeholder {
-  background-image: url(../assets/frame.jpg);
-  background-repeat: no-repeat;
-  background-size: 100%;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-  padding: 14px 13px;
-}
-.placeholder p {
-  margin-top: 17px;
-  margin-bottom: 0px;
-  font-size: 15px;
-}
-.placeholder img {
-  max-width: 100%;
-  border: solid 1px rgba(0, 0, 0, 0.3);
 }
 
 /* vim: set ts=2 sw=2 et: */

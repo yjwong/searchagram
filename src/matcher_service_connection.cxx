@@ -499,15 +499,31 @@ namespace SearchAGram {
                 " = :rowid", soci::use (match[0].imgIdx + 1),
                 soci::into (image_id);
              
+              std::string caption;
+              int comments_count;
+              int likes_count;
               std::string link;
-              session << "SELECT `link` FROM `images` WHERE `id` = :id", 
-                soci::use (image_id), soci::into (link);
+              std::string url;
+              session << "SELECT `images`.`caption`, "
+                "`images`.`comments_count`, `images`.`likes_count`, "
+                "`images`.`link`, `source_images`.`url` FROM `images`, "
+                "`source_images` WHERE `images`.`id` = :id AND "
+                "`source_images`.`image_id` = `images`.`id` AND "
+                "`source_images`.`name` = 'standard_resolution'", 
+                soci::use (image_id), soci::into (caption),
+                soci::into (comments_count), soci::into (likes_count), 
+                soci::into (link), soci::into (url);
 
               Json::Value result;
               result["id"] = image_id;
+              result["caption"] = caption;
+              result["likes_count"] = likes_count;
+              result["comments_count"] = comments_count;
               result["link"] = link;
-              result["match_imgidx"] = match[0].imgIdx;
-              result["match_distance"] = match[0].distance;
+              result["url"] = url;
+
+              result["debug_match_imgidx"] = match[0].imgIdx;
+              result["debug_match_distance"] = match[0].distance;
 
               results.append (result);
               duplicate_checker.insert (match[0].imgIdx);
