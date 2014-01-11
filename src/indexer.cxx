@@ -31,6 +31,7 @@
 #include "opencv2/opencv.hpp"
 
 #include "analysis/rgb_histogram.h"
+#include "analysis/color_coherence_vector.h"
 #include "analysis/surf_vector.h"
 
 #include "next_data_source.h"
@@ -131,6 +132,7 @@ namespace SearchAGram {
     std::auto_ptr<asio::io_service::work> work (
         new asio::io_service::work (io_service));
     for (std::size_t i = 0; i < boost::thread::hardware_concurrency (); ++i) {
+    //for (std::size_t i = 0; i < 1; ++i) {
       threads.create_thread (boost::bind (&asio::io_service::run, &io_service));
     }
 
@@ -161,6 +163,30 @@ namespace SearchAGram {
         surf.setMinHessian (1200);
         cv::Mat feature_vector = surf.detect ();
         manager.createVector ("surf", image, feature_vector);
+
+        // Use CCV to extract feature vectors.
+        /*
+        ColorCoherenceVector ccv (image_mat);
+        cv::Ptr<cv::FilterEngine> gaussian = cv::createGaussianFilter (CV_8UC3, cv::Size (5, 5), 5);
+        ccv.setFilterEngine (gaussian);
+        ccv.compute ();
+        cv::Mat feature_vector = ccv.getCCV ();
+        manager.createVector ("ccv", image, feature_vector);
+        */
+        
+        // Use RGB histogram to extract feature vectors.
+        /*
+        RGBHistogram histogram (image_mat);
+        cv::Mat r_histogram = histogram.getHistogram (RGBHistogram::CHANNEL_RED);
+        cv::Mat g_histogram = histogram.getHistogram (RGBHistogram::CHANNEL_GREEN);
+        cv::Mat b_histogram = histogram.getHistogram (RGBHistogram::CHANNEL_BLUE);
+
+        cv::Mat feature_vector;
+        feature_vector.push_back (r_histogram);
+        feature_vector.push_back (g_histogram);
+        feature_vector.push_back (b_histogram);
+        manager.createVector ("rgb", image, feature_vector);
+        */
 
         count++;
       });

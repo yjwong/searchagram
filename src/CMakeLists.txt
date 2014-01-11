@@ -31,7 +31,9 @@ add_executable (matcher
     matcher_service_connection.cxx
     config.cxx
     index_manager.cxx
-    analysis/surf_vector.cxx)
+    analysis/surf_vector.cxx
+    analysis/color_coherence_vector.cxx
+    analysis/rgb_histogram.cxx)
 add_dependencies (matcher soci)
 add_dependencies (matcher sqlite)
 add_dependencies (matcher b64)

@@ -103,14 +103,29 @@ namespace SearchAGram {
 
   void IndexManager::loadFlannIndex () {
     cv::Ptr<cv::flann::IndexParams> index_params = 
-      new cv::flann::KDTreeIndexParams (10);
+      new cv::flann::KDTreeIndexParams (4);
     flann_matcher_ = std::shared_ptr<cv::FlannBasedMatcher> (
        new cv::FlannBasedMatcher (index_params));
 
     // TODO: This is hardcoded but we can do better.
+    // For SURF.
     std::vector<cv::Mat> surf_vectors = getVectorsWithName ("surf");
     flann_matcher_->add (surf_vectors);
     flann_matcher_->train ();
+
+    // For CCV.
+    /*
+    std::vector<cv::Mat> ccv_vectors = getVectorsWithName ("ccv");
+    flann_matcher_->add (ccv_vectors);
+    flann_matcher_->train ();
+    */
+
+    // For RGB.
+    /*
+    std::vector<cv::Mat> rgb_vectors = getVectorsWithName ("rgb");
+    flann_matcher_->add (rgb_vectors);
+    flann_matcher_->train ();
+    */
 
     /*
     cv::Mat query = cv::imread ("/home/yjwong/Pictures/Screenshot from 2013-01-15 15:07:59.png");

@@ -31,7 +31,10 @@
 #include "b64/decode.h"
 #include "b64/encode.h"
 
+#include "analysis/rgb_histogram.h"
+#include "analysis/color_coherence_vector.h"
 #include "analysis/surf_vector.h"
+
 #include "index_manager.h"
 #include "matcher.h"
 #include "matcher_service_connection.h"
@@ -463,17 +466,49 @@ namespace SearchAGram {
           IndexManager& manager = IndexManager::getInstance ();
           std::shared_ptr<cv::FlannBasedMatcher> matcher = manager.obtainFlannMatcher ();
 
-          // Perform SURF analysis on query image.
+          // Perform analysis on query image.
           BOOST_LOG_TRIVIAL (info) << "received query image, performing analysis";
+
+          // SURF
           SurfVector surf_vector (image);
           surf_vector.setMinHessian (1200);
           cv::Mat feature_vectors = surf_vector.detect ();
 
+          // CCV
+          /*
+          ColorCoherenceVector ccv (image);
+          cv::Ptr<cv::FilterEngine> gaussian = cv::createGaussianFilter (CV_8UC3, cv::Size (13, 13), 5);
+          ccv.setFilterEngine (gaussian);
+          ccv.compute ();
+          cv::Mat feature_vectors = ccv.getCCV ();
+          */
+
+          // RGB
+          /*
+          RGBHistogram histogram (image);
+          cv::Mat r_histogram = histogram.getHistogram (RGBHistogram::CHANNEL_RED);
+          cv::Mat g_histogram = histogram.getHistogram (RGBHistogram::CHANNEL_GREEN);
+          cv::Mat b_histogram = histogram.getHistogram (RGBHistogram::CHANNEL_BLUE);
+
+          cv::Mat feature_vectors;
+          feature_vectors.push_back (r_histogram);
+          feature_vectors.push_back (g_histogram);
+          feature_vectors.push_back (b_histogram);
+          */
+
           // Perform matching.
           BOOST_LOG_TRIVIAL (info) << "performing matching...";
-          std::vector<std::vector<cv::DMatch>> matches;
-          matcher->knnMatch (feature_vectors, matches, 2);
+          //std::vector<std::vector<cv::DMatch>> matches;
+          //matcher->knnMatch (feature_vectors, matches, 4);
+          std::vector<cv::DMatch> matches;
+          matcher->match (feature_vectors, matches);
           BOOST_LOG_TRIVIAL (info) << "matching complete.";
+
+          // Sort the matches.
+          std::sort (matches.begin (), matches.end (),
+              [] (const cv::DMatch& a, const cv::DMatch& b) -> bool {
+                return a.distance < b.distance;
+              });
 
           // Obtain the matched image.
           float nndr_ratio = 0;
@@ -482,6 +517,48 @@ namespace SearchAGram {
           soci::session& vectors_session = manager.obtainVectorsSession ();
           soci::session& session = manager.obtainSession ();
 
+          for (cv::DMatch match : matches) {
+            if (duplicate_checker.find (match.imgIdx) !=
+                duplicate_checker.end ()) {
+              continue;
+            }
+
+            std::string image_id;
+            vectors_session << "SELECT `image_id` FROM `vectors` WHERE `rowid`"
+              " = :rowid", soci::use (match.imgIdx + 1),
+              soci::into (image_id);
+           
+            std::string caption;
+            int comments_count;
+            int likes_count;
+            std::string link;
+            std::string url;
+            session << "SELECT `images`.`caption`, "
+              "`images`.`comments_count`, `images`.`likes_count`, "
+              "`images`.`link`, `source_images`.`url` FROM `images`, "
+              "`source_images` WHERE `images`.`id` = :id AND "
+              "`source_images`.`image_id` = `images`.`id` AND "
+              "`source_images`.`name` = 'standard_resolution'", 
+              soci::use (image_id), soci::into (caption),
+              soci::into (comments_count), soci::into (likes_count), 
+              soci::into (link), soci::into (url);
+
+            Json::Value result;
+            result["id"] = image_id;
+            result["caption"] = caption;
+            result["likes_count"] = likes_count;
+            result["comments_count"] = comments_count;
+            result["link"] = link;
+            result["url"] = url;
+
+            result["debug_match_imgidx"] = match.imgIdx;
+            result["debug_match_distance"] = match.distance;
+
+            results.append (result);
+            duplicate_checker.insert (match.imgIdx);
+          }
+
+          /*
           for (std::vector<std::vector<cv::DMatch>>::size_type i = 0;
               i < matches.size (); i++) {
             std::vector<cv::DMatch> match = matches[i];
@@ -529,6 +606,7 @@ namespace SearchAGram {
               duplicate_checker.insert (match[0].imgIdx);
             }
           }
+          */
 
           manager.releaseSession ();
           manager.releaseVectorsSession ();
